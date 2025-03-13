@@ -18,6 +18,10 @@
   },
   "homepage": "https://github.com/TonyNebuloni/PartaRoute-back#readme",
   "dependencies": {
+    "@prisma/client": "^6.5.0",
     "express": "^4.21.2"
+  },
+  "devDependencies": {
+    "prisma": "^6.5.0"
   }
 }
