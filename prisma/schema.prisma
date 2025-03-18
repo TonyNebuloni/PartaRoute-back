@@ -7,8 +7,81 @@ generator client {
   provider = "prisma-client-js"
 }
 
-model User {
-  id    Int    @id @default(autoincrement())
-  name  String
-  email String @unique
+model Utilisateur {
+  id_utilisateur  Int          @id @default(autoincrement())
+  nom             String
+  email           String       @unique
+  mot_de_passe    String
+  photo_profil    String
+  preferences     Json?
+  role            Role
+  date_inscription DateTime    @default(now())
+  trajets         Trajet[]     @relation("ConducteurTrajets")
+  reservations    Reservation[]
+  notifications   Notification[]
+  administrateur  Administrateur?
+}
+
+model Trajet {
+  id_trajet       Int           @id @default(autoincrement())
+  conducteur_id   Int
+  ville_depart    String
+  ville_arrivee   String
+  date_heure_depart DateTime
+  places_disponibles Int
+  prix            Decimal
+  conditions      Json?
+  date_creation   DateTime      @default(now())
+  conducteur      Utilisateur   @relation("ConducteurTrajets", fields: [conducteur_id], references: [id_utilisateur])
+  reservations    Reservation[]
+}
+
+model Reservation {
+  id_reservation  Int           @id @default(autoincrement())
+  trajet_id       Int
+  passager_id     Int
+  date_reservation DateTime     @default(now())
+  statut          Statut
+  trajet          Trajet        @relation(fields: [trajet_id], references: [id_trajet])
+  passager        Utilisateur   @relation(fields: [passager_id], references: [id_utilisateur])
+  notifications   Notification[]
+}
+
+model Notification {
+  id_notification Int           @id @default(autoincrement())
+  utilisateur_id  Int
+  reservation_id  Int?
+  type            TypeNotification
+  contenu_message String
+  date_notification DateTime    @default(now())
+  lue             Boolean       @default(false)
+  utilisateur     Utilisateur   @relation(fields: [utilisateur_id], references: [id_utilisateur])
+  reservation     Reservation?  @relation(fields: [reservation_id], references: [id_reservation])
+}
+
+model Administrateur {
+  id_admin        Int           @id @default(autoincrement())
+  utilisateur_id  Int           @unique
+  niveau_acces    String?
+  utilisateur     Utilisateur   @relation(fields: [utilisateur_id], references: [id_utilisateur])
+}
+
+enum Role {
+  user
+  admin
+}
+
+enum Statut {
+  en_attente
+  acceptee
+  refusee
+  annulee
+}
+
+enum TypeNotification {
+  demande_reservation
+  confirmation
+  refus
+  annulation
+  generique
 }
