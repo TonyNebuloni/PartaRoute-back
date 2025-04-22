@@ -23,6 +23,7 @@ model Utilisateur {
   administrateur  Administrateur?
 }
 
+
 model Trajet {
   id_trajet       Int           @id @default(autoincrement())
   conducteur_id   Int
