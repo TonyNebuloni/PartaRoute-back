@@ -37,14 +37,30 @@ exports.login = async (req, res) => {
     const isMatch = await bcrypt.compare(mot_de_passe, user.mot_de_passe);
     if (!isMatch) return res.status(400).json({ message: 'Mot de passe incorrect' });
 
-    const token = jwt.sign(
-      { userId: user.id_utilisateur, role: user.role },
-      process.env.JWT_SECRET,
-      { expiresIn: '1h' }
-    );
+    const payload = { userId: user.id_utilisateur, role: user.role };
 
-    res.json({ token });
+    const accessToken = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '15m' });
+    const refreshToken = jwt.sign(payload, process.env.JWT_REFRESH_SECRET, { expiresIn: '7d' });
+
+    res.json({ accessToken, refreshToken });
   } catch (err) {
     res.status(500).json({ message: 'Erreur serveur', error: err.message });
+  }
+};
+
+exports.refreshToken = (req, res) => {
+  const { refreshToken } = req.body;
+
+  if (!refreshToken) return res.status(401).json({ message: 'Refresh token manquant' });
+
+  try {
+    const decoded = jwt.verify(refreshToken, process.env.JWT_REFRESH_SECRET);
+    const payload = { userId: decoded.userId, role: decoded.role };
+
+    const newAccessToken = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '15m' });
+
+    res.json({ accessToken: newAccessToken });
+  } catch (err) {
+    res.status(403).json({ message: 'Refresh token invalide ou expiré' });
   }
 };
