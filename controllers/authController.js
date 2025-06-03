@@ -26,16 +26,14 @@ exports.register = async (req, res) => {
       });
     }
 
-    // Hachage du mot de passe
     const hashedPassword = await bcrypt.hash(mot_de_passe, 10);
 
-    // Création de l'utilisateur avec rôle par défaut
     const user = await prisma.utilisateur.create({
       data: {
         nom,
         email,
         mot_de_passe: hashedPassword,
-        role: "user", // rôle par défaut
+        role: "user", 
         photo_profil: '',
       },
     });

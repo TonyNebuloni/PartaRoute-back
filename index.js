@@ -13,7 +13,7 @@ app.use(express.json());
 
 // Utilisation des routes
 app.use('/api/auth', authRoutes);
-app.use('/api/trajets', tripRoutes); 
+app.use('/api/trips', tripRoutes); 
 
 app.get('/', (req, res) => {
   res.send("Bienvenue sur l'API !");
