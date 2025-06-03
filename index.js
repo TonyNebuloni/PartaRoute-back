@@ -6,14 +6,14 @@ const cors = require('cors');
 
 // Importation des routes
 const authRoutes = require('./routes/authRoutes');
-const trajetRoutes = require('./routes/trajetRoutes');
+const tripRoutes = require('./routes/tripRoutes');
 
 app.use(cors());
 app.use(express.json());
 
 // Utilisation des routes
 app.use('/api/auth', authRoutes);
-app.use('/api/trajets', trajetRoutes); 
+app.use('/api/trajets', tripRoutes); 
 
 app.get('/', (req, res) => {
   res.send("Bienvenue sur l'API !");
