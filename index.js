@@ -24,6 +24,21 @@ app.use('/api/reservations', reservationRoutes);
 
 app.use('/api/trips', tripRoutes); 
 
+app.use((req, res, next) => {
+  res.status(404).json({
+    success: false,
+    message: "Route introuvable.",
+  });
+});
+
+// Gestion globale des erreurs (500)
+app.use((err, req, res, next) => {
+  console.error("Erreur serveur :", err);
+  res.status(500).json({
+    success: false,
+    message: "Erreur interne du serveur.",
+  });
+});
 
 app.get('/', (req, res) => {
   res.send("Bienvenue sur l'API !");
