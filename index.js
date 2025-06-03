@@ -24,6 +24,16 @@ app.use('/api/reservations', reservationRoutes);
 
 app.use('/api/trips', tripRoutes); 
 
+
+
+app.get('/', (req, res) => {
+  res.send("Bienvenue sur l'API !");
+});
+
+
+const setupSwagger = require("./docs/swagger.js");
+setupSwagger(app);
+
 app.use((req, res, next) => {
   res.status(404).json({
     success: false,
@@ -39,11 +49,6 @@ app.use((err, req, res, next) => {
     message: "Erreur interne du serveur.",
   });
 });
-
-app.get('/', (req, res) => {
-  res.send("Bienvenue sur l'API !");
-});
-
 app.listen(port, () => {
   console.log(`✅ Serveur sécurisé actif sur http://localhost:${port}`);
 });
