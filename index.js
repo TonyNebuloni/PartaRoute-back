@@ -7,6 +7,7 @@ const cors = require('cors');
 // Importation des routes
 const authRoutes = require('./routes/authRoutes');
 
+const notificationRoutes = require('./routes/notificationRoutes');
 
 const reservationRoutes = require('./routes/reservationRoutes');
 
@@ -19,10 +20,11 @@ app.use(express.json());
 // Utilisation des routes
 app.use('/api/auth', authRoutes);
 
-
 app.use('/api/reservations', reservationRoutes);
 
-app.use('/api/trips', tripRoutes); 
+app.use('/api/trips', tripRoutes);
+
+app.use('/api/notifications', notificationRoutes);
 
 
 

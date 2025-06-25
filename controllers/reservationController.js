@@ -90,10 +90,34 @@ exports.createReservation = async (req, res) => {
 exports.getReservations = async (req, res) => {
     try {
         const utilisateur = req.user;
+        const { search, date } = req.query;
 
-        // Récupération des réservations de l'utilisateur
+        const filters = {
+            passager_id: utilisateur.id_utilisateur,
+        };
+
+        if (search) {
+            filters.trajet = {
+                OR: [
+                    { ville_depart: { contains: search, mode: 'insensitive' } },
+                    { ville_arrivee: { contains: search, mode: 'insensitive' } }
+                ]
+            }
+        }
+
+        if (date) {
+            const parsedDate = new Date(date);
+            const nextDay = new Date(parsedDate);
+            nextDay.setDate(parsedDate.getDate() + 1);
+
+            filters.date_reservation = {
+                gte: parsedDate,
+                lt: nextDay
+            };
+        }
+
         const reservations = await prisma.reservation.findMany({
-            where: { passager_id: utilisateur.id_utilisateur },
+            where: filters,
             include: {
                 trajet: true,
                 passager: true,
