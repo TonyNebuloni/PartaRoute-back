@@ -1,37 +1,41 @@
-require('dotenv').config();
-const express = require('express');
+require("dotenv").config();
+const express = require("express");
 const app = express();
 const port = 3000;
-const cors = require('cors');
+const cors = require("cors");
 
 // Importation des routes
-const authRoutes = require('./routes/authRoutes');
+const authRoutes = require("./routes/authRoutes");
 
-const notificationRoutes = require('./routes/notificationRoutes');
+const notificationRoutes = require("./routes/notificationRoutes");
 
-const reservationRoutes = require('./routes/reservationRoutes');
+const reservationRoutes = require("./routes/reservationRoutes");
 
-const tripRoutes = require('./routes/tripRoutes');
+const tripRoutes = require("./routes/tripRoutes");
 
+const userRoutes = require("./routes/userRoutes");
+
+const adminRoutes = require("./routes/adminRoutes");
 
 app.use(cors());
 app.use(express.json());
 
 // Utilisation des routes
-app.use('/api/auth', authRoutes);
+app.use("/api/auth", authRoutes);
 
-app.use('/api/reservations', reservationRoutes);
+app.use("/api/user", userRoutes);
 
-app.use('/api/trips', tripRoutes);
+app.use("/api/admin", adminRoutes);
 
-app.use('/api/notifications', notificationRoutes);
+app.use("/api/reservations", reservationRoutes);
 
+app.use("/api/trips", tripRoutes);
 
+app.use("/api/notifications", notificationRoutes);
 
-app.get('/', (req, res) => {
+app.get("/", (req, res) => {
   res.send("Bienvenue sur l'API !");
 });
-
 
 const setupSwagger = require("./docs/swagger.js");
 setupSwagger(app);
