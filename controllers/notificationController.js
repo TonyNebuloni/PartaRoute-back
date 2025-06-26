@@ -1,5 +1,6 @@
 const prisma = require('../prisma/prisma');
 
+
 // Récupérer toutes les notifications d'un utilisateur
 exports.getAllNotifications = async (req, res) => {
     try {
