@@ -1,5 +1,4 @@
-const { PrismaClient } = require("@prisma/client");
-const prisma = new PrismaClient();
+const prisma = require('../prisma/prisma');
 
 // Create a new reservation
 exports.createReservation = async (req, res) => {
