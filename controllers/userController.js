@@ -25,7 +25,13 @@ exports.getUserById = async (req, res) => {
       return res.status(404).json({ success: false, message: "Utilisateur non trouvé." });
     }
 
-    res.status(200).json({ success: true, data: user });
+    res.status(200).json({
+      success: true,
+      data: {
+        ...user,
+        links: generateUserLinks(user)
+      }
+    });
   } catch (err) {
     console.error("Erreur getUserById:", err);
     res.status(500).json({ success: false, message: "Erreur serveur." });
@@ -60,7 +66,13 @@ exports.editUser = async (req, res) => {
       select: { id_utilisateur: true, nom: true, email: true, role: true },
     });
 
-    res.status(200).json({ success: true, data: updatedUser });
+    res.status(200).json({
+      success: true,
+      data: {
+        ...updatedUser,
+        links: generateUserLinks(updatedUser)
+      }
+    });
   } catch (err) {
     console.error("Erreur editUser:", err);
     res.status(500).json({ success: false, message: "Erreur lors de la mise à jour." });
@@ -75,7 +87,20 @@ exports.deleteUser = async (req, res) => {
       where: { id_utilisateur },
     });
 
-    res.status(200).json({ success: true, message: "Utilisateur supprimé avec succès." });
+    res.status(200).json({
+      success: true,
+      message: "Utilisateur supprimé avec succès.",
+      links: {
+        create: {
+          href: `/api/auth/register`,
+          method: "POST"
+        },
+        list: {
+          href: `/api/users`,
+          method: "GET"
+        }
+      }
+    });
   } catch (err) {
     console.error("Erreur deleteUser:", err);
     res.status(500).json({ success: false, message: "Erreur lors de la suppression." });
@@ -98,7 +123,13 @@ exports.getAllUsers = async (req, res) => {
       },
     });
 
-    return res.status(200).json({ success: true, data: users });
+    return res.status(200).json({
+      success: true,
+      data: users.map(user => ({
+        ...user,
+        _links: generateUserLinks(user)
+      }))
+    });
   } catch (err) {
     console.error("Erreur getAllUsers:", err);
     res.status(500).json({ success: false, message: "Erreur serveur." });
@@ -138,7 +169,13 @@ exports.editUserByAdmin = async (req, res) => {
       },
     });
 
-    return res.status(200).json({ success: true, data: updatedUser });
+    return res.status(200).json({
+      success: true,
+      data: {
+        ...updatedUser,
+        links: generateUserLinks(updatedUser)
+      }
+    });
   } catch (err) {
     console.error("Erreur editUserByAdmin:", err);
     res.status(500).json({ success: false, message: "Erreur lors de la mise à jour." });
@@ -162,9 +199,39 @@ exports.deleteUserByAdmin = async (req, res) => {
       where: { id_utilisateur: parseInt(id) },
     });
 
-    return res.status(200).json({ success: true, message: "Utilisateur supprimé avec succès." });
+    res.status(200).json({
+      success: true,
+      message: "Utilisateur supprimé avec succès.",
+      links: {
+        create: {
+          href: `/api/auth/register`,
+          method: "POST"
+        },
+        list: {
+          href: `/api/users`,
+          method: "GET"
+        }
+      }
+    });
   } catch (err) {
     console.error("Erreur deleteUserByAdmin:", err);
     res.status(500).json({ success: false, message: "Erreur lors de la suppression." });
   }
 };
+
+function generateUserLinks(user) {
+  return {
+    self: {
+      href: `/api/users/${user.id_utilisateur}`,
+      method: "GET"
+    },
+    update: {
+      href: `/api/users/${user.id_utilisateur}`,
+      method: "PATCH"
+    },
+    delete: {
+      href: `/api/users/${user.id_utilisateur}`,
+      method: "DELETE"
+    }
+  };
+}

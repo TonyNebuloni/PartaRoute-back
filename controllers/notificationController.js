@@ -25,7 +25,10 @@ exports.getAllNotifications = async (req, res) => {
 
         return res.status(200).json({
             success: true,
-            data: notifications
+            data: notifications.map(notification => ({
+                ...notification,
+                links: generateNotificationLinks(notification)
+            }))
         });
     } catch (err) {
         console.error("Erreur lors de la récupération des notifications:", err);
@@ -83,7 +86,10 @@ exports.createNotification = async (req, res) => {
         return res.status(201).json({
             success: true,
             message: "Notification créée avec succès.",
-            data: notification
+            data: {
+                ...notification,
+                links: generateNotificationLinks(notification)
+            }
         });
     } catch (err) {
         console.error("Erreur lors de la création de la notification:", err);
@@ -125,7 +131,10 @@ exports.markAsRead = async (req, res) => {
         return res.status(200).json({
             success: true,
             message: "Notification marquée comme lue.",
-            data: updatedNotification
+            data: {
+                ...updatedNotification,
+                links: generateNotificationLinks(updatedNotification)
+            }
         });
     } catch (err) {
         console.error("Erreur lors de la mise à jour de la notification:", err);
@@ -165,7 +174,17 @@ exports.deleteNotification = async (req, res) => {
 
         return res.status(200).json({
             success: true,
-            message: "Notification supprimée avec succès."
+            message: "Notification supprimée avec succès.",
+            links: {
+                all: {
+                    href: `/api/notifications/user/${notification.utilisateur_id}`,
+                    method: "GET"
+                },
+                create: {
+                    href: `/api/notifications`,
+                    method: "POST"
+                }
+            }
         });
     } catch (err) {
         console.error("Erreur lors de la suppression de la notification:", err);
@@ -175,3 +194,21 @@ exports.deleteNotification = async (req, res) => {
         });
     }
 };
+
+function generateNotificationLinks(notification) {
+    return {
+        self: {
+            href: `/api/notifications/${notification.id_notification}`,
+            method: "GET"
+        },
+        markAsRead: {
+            href: `/api/notifications/${notification.id_notification}/read`,
+            method: "PATCH"
+        },
+        delete: {
+            href: `/api/notifications/${notification.id_notification}`,
+            method: "DELETE"
+        }
+    };
+}
+
