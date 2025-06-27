@@ -42,7 +42,10 @@ exports.createTrip = async (req, res) => {
     return res.status(201).json({
       success: true,
       message: "Trip created successfully.",
-      data: trip,
+      data: {
+        ...trip,
+        links: generateTripLinks(trip)
+      },
     });
   } catch (error) {
     console.error("Error creating trip:", error);
@@ -95,7 +98,10 @@ exports.getTrips = async (req, res) => {
     res.status(200).json({
       success: true,
       message: `${trips.length} trip(s) found.`,
-      data: trips,
+      data: trips.map(trip => ({
+        ...trip,
+        links: generateTripLinks(trip)
+      })),
     });
   } catch (err) {
     console.error("Error retrieving trips:", err);
@@ -148,7 +154,10 @@ exports.updateTrip = async (req, res) => {
     return res.status(200).json({
       success: true,
       message: "Trip updated successfully.",
-      data: updatedTrip,
+      data: {
+        ...updatedTrip,
+        links: generateTripLinks(updatedTrip)
+      },
     });
   } catch (error) {
     console.error("Error updating trip:", error);
@@ -183,6 +192,10 @@ exports.deleteTrip = async (req, res) => {
     return res.status(200).json({
       success: true,
       message: "Trip deleted successfully.",
+      links: {
+        trips: { href: "/api/trips", method: "GET" },
+        create: { href: "/api/trips", method: "POST" }
+      }
     });
   } catch (error) {
     console.error("Error deleting trip:", error);
@@ -192,3 +205,25 @@ exports.deleteTrip = async (req, res) => {
     });
   }
 };
+
+function generateTripLinks(trip) {
+  return {
+    self: {
+      href: `/api/trips/${trip.id_trajet}`,
+      method: "GET",
+    },
+    update: {
+      href: `/api/trips/${trip.id_trajet}`,
+      method: "PATCH",
+    },
+    delete: {
+      href: `/api/trips/${trip.id_trajet}`,
+      method: "DELETE",
+    },
+    createReservation: {
+      href: `/api/reservations`,
+      method: "POST",
+      body: { trajet_id: trip.id_trajet }
+    }
+  };
+}

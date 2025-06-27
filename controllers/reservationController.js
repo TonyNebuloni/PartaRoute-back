@@ -71,10 +71,13 @@ exports.createReservation = async (req, res) => {
             },
         });
 
-        return res.status(201).json({
+        return res.status(200).json({
             success: true,
             message: "Réservation créée avec succès.",
-            data: reservation,
+            data: {
+                ...reservation,
+                links: generateReservationLinks(reservation)
+            }
         });
     }catch (error) {
         console.error("Erreur lors de la création de la réservation :", error);
@@ -125,7 +128,10 @@ exports.getReservations = async (req, res) => {
 
         return res.status(200).json({
             success: true,
-            data: reservations,
+            data: reservations.map(reservation => ({
+                ...reservation,
+                links: generateReservationLinks(reservation)
+            }))
         });
     } catch (error) {
         console.error("Erreur lors de la récupération des réservations :", error);
@@ -212,9 +218,10 @@ exports.changeStatutReservation = async (req, res) => {
 
         return res.status(200).json({
             success: true,
-            message: `Réservation ${statut === 'acceptee' ? "acceptée" : "refusée"}.`,
-            reservation: updatedReservation,
-            trajet: updatedTrajet
+            data: reservations.map(reservation => ({
+                ...reservation,
+                links: generateReservationLinks(reservation)
+            }))
         });
     } catch (error) {
         console.error("Erreur lors du changement de statut de la réservation :", error);
@@ -285,7 +292,8 @@ exports.cancelReservation = async (req, res) => {
             success: true,
             message: "Réservation annulée.",
             reservation: updatedReservation,
-            trajet: updatedTrajet
+            trajet: updatedTrajet,
+            links: generateReservationLinks(updatedReservation)
         });
     } catch (error) {
         console.error("Erreur lors de l'annulation de la réservation :", error);
@@ -295,3 +303,20 @@ exports.cancelReservation = async (req, res) => {
         });
     }
 };
+
+function generateReservationLinks(reservation) {
+    return {
+        self: {
+            href: `/api/reservations/${reservation.id_reservation}`,
+            method: "GET"
+        },
+        cancel: {
+            href: `/api/reservations/${reservation.id_reservation}/cancel`,
+            method: "PATCH"
+        },
+        trajet: {
+            href: `/api/trajets/${reservation.trajet_id}`,
+            method: "GET"
+        }
+    };
+}
