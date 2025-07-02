@@ -4,7 +4,8 @@ const {
   createReservation,
   getReservations,
   changeStatutReservation,
-  cancelReservation 
+  cancelReservation,
+  getReservationsForDriver
 } = require("../controllers/reservationController");
 const authenticateToken = require("../middlewares/auth");
 
@@ -121,5 +122,41 @@ router.post("/:id/statut", authenticateToken, changeStatutReservation);
  *         description: Réservation non trouvée
  */
 router.patch('/:id/annuler', authenticateToken, cancelReservation);
+
+/**
+ * @swagger
+ * /conducteur/reservations:
+ *   get:
+ *     summary: Récupérer toutes les réservations pour les trajets dont l'utilisateur connecté est le conducteur
+ *     tags: [Reservations]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Liste des réservations pour les trajets du conducteur récupérée avec succès
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 data:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       id_reservation:
+ *                         type: integer
+ *                       statut:
+ *                         type: string
+ *                       trajet:
+ *                         type: object
+ *                       passager:
+ *                         type: object
+ *       401:
+ *         description: Non autorisé
+ */
+router.get("/conducteur/reservations", authenticateToken, getReservationsForDriver);
 
 module.exports = router;

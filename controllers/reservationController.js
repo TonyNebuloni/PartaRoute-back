@@ -304,6 +304,40 @@ exports.cancelReservation = async (req, res) => {
     }
 };
 
+// GET /conducteur/reservations : réservations pour les trajets dont l'utilisateur est conducteur
+exports.getReservationsForDriver = async (req, res) => {
+    try {
+        const utilisateur = req.user;
+        // On récupère toutes les réservations dont le trajet a pour conducteur l'utilisateur connecté
+        const reservations = await prisma.reservation.findMany({
+            where: {
+                trajet: {
+                    conducteur_id: utilisateur.id_utilisateur
+                }
+            },
+            include: {
+                trajet: true,
+                passager: true
+            }
+        });
+        return res.status(200).json({
+            success: true,
+            data: reservations.map(r => ({
+                id_reservation: r.id_reservation,
+                statut: r.statut,
+                trajet: r.trajet,
+                passager: r.passager
+            }))
+        });
+    } catch (error) {
+        console.error("Erreur lors de la récupération des réservations conducteur :", error);
+        res.status(500).json({
+            success: false,
+            message: "Erreur interne lors de la récupération des réservations conducteur."
+        });
+    }
+};
+
 function generateReservationLinks(reservation) {
     return {
         self: {
