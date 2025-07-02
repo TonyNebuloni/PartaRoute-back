@@ -18,7 +18,7 @@ exports.createReservation = async (req, res) => {
         // Vérification que le trajet existe et qu'il y a des places disponibles
         const trajet = await prisma.trajet.findUnique({
             where: { id_trajet: parseInt(trajet_id) },
-            include: { reservations: true },
+            include: { reservations: { select: { statut: true } } },
         });
 
         // Vérification de l'existence du trajet et des places disponibles
@@ -29,7 +29,9 @@ exports.createReservation = async (req, res) => {
             });
         }
 
-        if (trajet.places_disponibles <= trajet.reservations.length) {
+        // On compte seulement les réservations acceptées
+        const nbReservationsAcceptees = trajet.reservations.filter(r => r.statut === 'acceptee').length;
+        if (trajet.places_disponibles <= nbReservationsAcceptees) {
             return res.status(400).json({
                 success: false,
                 message: "Aucune place disponible pour ce trajet.",
