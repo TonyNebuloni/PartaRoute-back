@@ -75,21 +75,27 @@ describe('PATCH /reservations/:id/statut', () => {
             trajet: {
                 conducteur_id: 10,
                 places_disponibles: 2,
-                id_trajet: 5
-            }
+                id_trajet: 5,
+                ville_depart: 'Paris',
+                ville_arrivee: 'Lyon'
+            },
+            passager_id: 2
         });
 
         prisma.$transaction.mockResolvedValue([
             { id_reservation: 1, statut: 'acceptee' },
             { id_trajet: 5, places_disponibles: 1 }
         ]);
+        prisma.notification.create.mockResolvedValue({});
 
         const res = await request(app)
             .patch('/reservations/1/statut')
             .send({ statut: 'acceptee' });
 
         expect(res.statusCode).toBe(200);
-        expect(res.body.message).toMatch(/acceptée/);
+        expect(res.body.success).toBe(true);
+        expect(res.body.reservation).toBeDefined();
+        expect(res.body.reservation.statut).toBe('acceptee');
     });
 });
 

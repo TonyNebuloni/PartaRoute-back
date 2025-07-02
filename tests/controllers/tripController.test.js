@@ -26,6 +26,10 @@ app.get('/trips/conducteur/trajets', (req, res, next) => {
     next();
 }, tripController.getTripsForDriver);
 
+beforeEach(() => {
+    prisma.reservation.deleteMany = jest.fn().mockResolvedValue({});
+});
+
 describe('GET /trips', () => {
     it('doit retourner une liste de trajets filtrés', async () => {
         prisma.trajet.findMany.mockResolvedValue([
@@ -63,18 +67,53 @@ describe('PATCH /trips/:id', () => {
 });
 
 describe('DELETE /trips/:id', () => {
-    it('doit supprimer un trajet', async () => {
+    it('doit supprimer un trajet et notifier les passagers', async () => {
+        // Mock du trajet à supprimer
         prisma.trajet.findUnique.mockResolvedValue({
             id_trajet: 1,
-            conducteur_id: 1
+            conducteur_id: 1,
+            ville_depart: 'Paris',
+            ville_arrivee: 'Lyon'
         });
-
+        // Mock des réservations liées
+        prisma.reservation.findMany.mockResolvedValue([
+            {
+                id_reservation: 10,
+                passager_id: 2,
+                passager: { id_utilisateur: 2, nom: 'Alice' }
+            },
+            {
+                id_reservation: 11,
+                passager_id: 3,
+                passager: { id_utilisateur: 3, nom: 'Bob' }
+            }
+        ]);
+        // Mock notification.create
+        prisma.notification.create.mockResolvedValue({});
+        // Mock suppression des réservations
+        prisma.reservation.deleteMany.mockResolvedValue({});
+        // Mock suppression du trajet
         prisma.trajet.delete.mockResolvedValue({});
 
         const res = await request(app).delete('/trips/1');
-
         expect(res.statusCode).toBe(200);
         expect(res.body.success).toBe(true);
+        // Vérifie que la notification a été créée pour chaque passager
+        expect(prisma.notification.create).toHaveBeenCalledTimes(2);
+        expect(prisma.notification.create).toHaveBeenCalledWith({
+            data: expect.objectContaining({
+                utilisateur_id: 2,
+                type: 'annulation',
+                contenu_message: expect.stringContaining('a été annulée')
+            })
+        });
+        expect(prisma.notification.create).toHaveBeenCalledWith({
+            data: expect.objectContaining({
+                utilisateur_id: 3,
+                type: 'annulation',
+                contenu_message: expect.stringContaining('a été annulée')
+            })
+        });
     });
 });
 

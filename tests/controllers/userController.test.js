@@ -58,11 +58,30 @@ beforeAll(async () => {
 });
 
 afterAll(async () => {
-    await prisma.utilisateur.deleteMany({
-        where: {
-            id_utilisateur: { in: [userPayload.id_utilisateur, adminPayload.id_utilisateur] }
-        }
+    // 1. Supprimer d'abord les réservations liées aux trajets de ces utilisateurs
+    const userIds = [userPayload.id_utilisateur, adminPayload.id_utilisateur];
+    const trajets = await prisma.trajet.findMany({
+        where: { conducteur_id: { in: userIds } },
+        select: { id_trajet: true }
     });
+    const trajetIds = trajets.map(t => t.id_trajet);
+
+    if (trajetIds.length > 0) {
+        await prisma.reservation.deleteMany({
+            where: { trajet_id: { in: trajetIds } }
+        });
+    }
+
+    // 2. Supprimer les trajets
+    await prisma.trajet.deleteMany({
+        where: { conducteur_id: { in: userIds } }
+    });
+
+    // 3. Supprimer les utilisateurs
+    await prisma.utilisateur.deleteMany({
+        where: { id_utilisateur: { in: userIds } }
+    });
+
     await prisma.$disconnect();
 });
 
