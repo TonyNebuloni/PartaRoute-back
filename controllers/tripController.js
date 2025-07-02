@@ -302,3 +302,35 @@ exports.getTripsForDriver = async (req, res) => {
         });
     }
 };
+
+// GET /trips/:id : récupérer un trajet précis
+exports.getTripById = async (req, res) => {
+    try {
+        const tripId = parseInt(req.params.id, 10);
+        const trip = await prisma.trajet.findUnique({
+            where: { id_trajet: tripId },
+            include: {
+                conducteur: true,
+                reservations: {
+                    include: { passager: true }
+                }
+            }
+        });
+        if (!trip) {
+            return res.status(404).json({
+                success: false,
+                message: "Trajet non trouvé."
+            });
+        }
+        return res.status(200).json({
+            success: true,
+            data: trip
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: "Erreur interne lors de la récupération du trajet.",
+            error: error.message
+        });
+    }
+};

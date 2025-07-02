@@ -26,6 +26,12 @@ app.get('/trips/conducteur/trajets', (req, res, next) => {
     next();
 }, tripController.getTripsForDriver);
 
+// Ajout de la route GET /trips/:id avec user simulé
+app.get('/trips/:id', (req, res, next) => {
+    req.user = { id_utilisateur: 1 };
+    next();
+}, tripController.getTripById);
+
 beforeEach(() => {
     prisma.reservation.deleteMany = jest.fn().mockResolvedValue({});
     prisma.trajet.count = jest.fn().mockResolvedValue(1);
@@ -154,5 +160,39 @@ describe('GET /trips/conducteur/trajets', () => {
         expect(res.body.data[0].reservations[0]).toHaveProperty('passager');
         expect(res.body.data[0].reservations[0].passager.nom).toBe('Alice');
         expect(res.body.data[1].reservations.length).toBe(0);
+    });
+});
+
+describe('GET /trips/:id', () => {
+    it('doit retourner un trajet précis avec conducteur et réservations', async () => {
+        prisma.trajet.findUnique.mockResolvedValue({
+            id_trajet: 99,
+            ville_depart: 'Paris',
+            ville_arrivee: 'Lyon',
+            conducteur: { id_utilisateur: 1, nom: 'Jean' },
+            reservations: [
+                {
+                    id_reservation: 1,
+                    statut: 'acceptée',
+                    passager: { id_utilisateur: 2, nom: 'Alice' }
+                }
+            ]
+        });
+        const res = await request(app).get('/trips/99');
+        expect(res.statusCode).toBe(200);
+        expect(res.body.success).toBe(true);
+        expect(res.body.data).toHaveProperty('id_trajet', 99);
+        expect(res.body.data).toHaveProperty('conducteur');
+        expect(Array.isArray(res.body.data.reservations)).toBe(true);
+        expect(res.body.data.reservations[0]).toHaveProperty('passager');
+        expect(res.body.data.reservations[0].passager.nom).toBe('Alice');
+    });
+
+    it('retourne 404 si le trajet est introuvable', async () => {
+        prisma.trajet.findUnique.mockResolvedValue(null);
+        const res = await request(app).get('/trips/404');
+        expect(res.statusCode).toBe(404);
+        expect(res.body.success).toBe(false);
+        expect(res.body.message).toMatch(/trou/);
     });
 });

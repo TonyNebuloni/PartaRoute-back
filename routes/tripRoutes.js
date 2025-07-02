@@ -245,4 +245,34 @@ router.delete("/:id", authenticateToken, deleteTrip);
  */
 router.get("/conducteur/trajets", authenticateToken, require("../controllers/tripController").getTripsForDriver);
 
+/**
+ * @swagger
+ * /trips/{id}:
+ *   get:
+ *     summary: Récupérer un trajet précis par son ID
+ *     tags: [Trajets]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: ID du trajet
+ *     responses:
+ *       200:
+ *         description: Trajet trouvé
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 data:
+ *                   type: object
+ *       404:
+ *         description: Trajet non trouvé
+ */
+router.get('/:id', require('../controllers/tripController').getTripById);
+
 module.exports = router;
