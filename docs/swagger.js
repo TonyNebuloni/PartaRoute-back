@@ -28,6 +28,34 @@ const options = {
         bearerAuth: [],
       },
     ],
+    /**
+     * @swagger
+     * /trips/{id}:
+     *   get:
+     *     summary: Récupérer un trajet précis par son ID
+     *     tags: [Trajets]
+     *     parameters:
+     *       - in: path
+     *         name: id
+     *         required: true
+     *         schema:
+     *           type: integer
+     *         description: ID du trajet
+     *     responses:
+     *       200:
+     *         description: Trajet trouvé
+     *         content:
+     *           application/json:
+     *             schema:
+     *               type: object
+     *               properties:
+     *                 success:
+     *                   type: boolean
+     *                 data:
+     *                   type: object
+     *       404:
+     *         description: Trajet non trouvé
+     */
   },
   apis: ["./routes/*.js"], // Assure-toi que les routes sont bien à la racine de "routes"
 };

@@ -25,11 +25,48 @@ const authenticateToken = require("../middlewares/auth");
  *         schema:
  *           type: integer
  *         description: ID de l'utilisateur
+ *       - in: query
+ *         name: page
+ *         schema:
+ *           type: integer
+ *           default: 1
+ *         description: Numéro de page pour la pagination
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *           default: 10
+ *         description: Nombre d'éléments par page
  *     responses:
  *       200:
- *         description: Liste des notifications récupérée avec succès
+ *         description: Liste paginée des notifications récupérée avec succès
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 page:
+ *                   type: integer
+ *                 limit:
+ *                   type: integer
+ *                 total:
+ *                   type: integer
+ *                 data:
+ *                   type: array
+ *                   items:
+ *                     type: object
  *       401:
  *         description: Non autorisé
+ *     examples:
+ *       application/json:
+ *         value:
+ *           success: true
+ *           page: 1
+ *           limit: 10
+ *           total: 15
+ *           data: [ { id_notification: 1, ... }, ... ]
  */
 router.get('/utilisateur/:utilisateurId', authenticateToken, notificationController.getAllNotifications);
 

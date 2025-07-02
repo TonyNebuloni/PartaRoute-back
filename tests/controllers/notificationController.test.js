@@ -14,6 +14,10 @@ app.post('/notifications', notificationController.createNotification);
 app.patch('/notifications/:notificationId/lue', notificationController.markAsRead);
 app.delete('/notifications/:notificationId', notificationController.deleteNotification);
 
+beforeEach(() => {
+    prisma.notification.count = jest.fn().mockResolvedValue(1);
+});
+
 describe('GET /notifications/:utilisateurId', () => {
     it('devrait retourner des notifications', async () => {
         prisma.notification.findMany.mockResolvedValue([

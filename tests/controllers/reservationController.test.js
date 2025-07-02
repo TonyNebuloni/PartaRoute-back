@@ -29,9 +29,19 @@ app.delete('/reservations/:id', (req, res, next) => {
     next();
 }, reservationController.cancelReservation);
 
+// Ajout de la route simulée pour le conducteur
+app.get('/conducteur/reservations', (req, res, next) => {
+    req.user = { id_utilisateur: 42 }; // simulate conducteur
+    next();
+}, reservationController.getReservationsForDriver);
+
 // ============================
 // TESTS
 // ============================
+
+beforeEach(() => {
+    prisma.reservation.count = jest.fn().mockResolvedValue(1);
+});
 
 describe('POST /reservations', () => {
     it('devrait créer une réservation', async () => {
@@ -69,21 +79,27 @@ describe('PATCH /reservations/:id/statut', () => {
             trajet: {
                 conducteur_id: 10,
                 places_disponibles: 2,
-                id_trajet: 5
-            }
+                id_trajet: 5,
+                ville_depart: 'Paris',
+                ville_arrivee: 'Lyon'
+            },
+            passager_id: 2
         });
 
         prisma.$transaction.mockResolvedValue([
             { id_reservation: 1, statut: 'acceptee' },
             { id_trajet: 5, places_disponibles: 1 }
         ]);
+        prisma.notification.create.mockResolvedValue({});
 
         const res = await request(app)
             .patch('/reservations/1/statut')
             .send({ statut: 'acceptee' });
 
         expect(res.statusCode).toBe(200);
-        expect(res.body.message).toMatch(/acceptée/);
+        expect(res.body.success).toBe(true);
+        expect(res.body.reservation).toBeDefined();
+        expect(res.body.reservation.statut).toBe('acceptee');
     });
 });
 
@@ -106,5 +122,35 @@ describe('DELETE /reservations/:id', () => {
         const res = await request(app).delete('/reservations/1');
         expect(res.statusCode).toBe(200);
         expect(res.body.message).toMatch(/Réservation annulée/);
+    });
+});
+
+describe('GET /conducteur/reservations', () => {
+    it('doit retourner les réservations pour les trajets du conducteur', async () => {
+        prisma.reservation.findMany.mockResolvedValue([
+            {
+                id_reservation: 1,
+                statut: 'en_attente',
+                trajet: { id_trajet: 10, ville_depart: 'Paris', ville_arrivee: 'Lyon', conducteur_id: 42 },
+                passager: { id_utilisateur: 2, nom: 'Alice' }
+            },
+            {
+                id_reservation: 2,
+                statut: 'acceptee',
+                trajet: { id_trajet: 11, ville_depart: 'Lyon', ville_arrivee: 'Marseille', conducteur_id: 42 },
+                passager: { id_utilisateur: 3, nom: 'Bob' }
+            }
+        ]);
+
+        const res = await request(app).get('/conducteur/reservations');
+        expect(res.statusCode).toBe(200);
+        expect(res.body.success).toBe(true);
+        expect(Array.isArray(res.body.data)).toBe(true);
+        expect(res.body.data.length).toBe(2);
+        expect(res.body.data[0]).toHaveProperty('id_reservation');
+        expect(res.body.data[0]).toHaveProperty('statut');
+        expect(res.body.data[0]).toHaveProperty('trajet');
+        expect(res.body.data[0]).toHaveProperty('passager');
+        expect(res.body.data[0].trajet.conducteur_id).toBe(42);
     });
 });

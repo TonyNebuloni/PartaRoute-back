@@ -4,7 +4,8 @@ const {
   createReservation,
   getReservations,
   changeStatutReservation,
-  cancelReservation 
+  cancelReservation,
+  getReservationsForDriver
 } = require("../controllers/reservationController");
 const authenticateToken = require("../middlewares/auth");
 
@@ -52,11 +53,49 @@ router.post("/", authenticateToken, createReservation);
  *     tags: [Reservations]
  *     security:
  *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: page
+ *         schema:
+ *           type: integer
+ *           default: 1
+ *         description: Numéro de page pour la pagination
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *           default: 10
+ *         description: Nombre d'éléments par page
  *     responses:
  *       200:
- *         description: Liste des réservations récupérée avec succès
+ *         description: Liste paginée des réservations récupérée avec succès
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 page:
+ *                   type: integer
+ *                 limit:
+ *                   type: integer
+ *                 total:
+ *                   type: integer
+ *                 data:
+ *                   type: array
+ *                   items:
+ *                     type: object
  *       401:
  *         description: Non autorisé
+ *     examples:
+ *       application/json:
+ *         value:
+ *           success: true
+ *           page: 1
+ *           limit: 10
+ *           total: 20
+ *           data: [ { id_reservation: 1, ... }, ... ]
  */
 router.get("/", authenticateToken, getReservations);
 
@@ -121,5 +160,61 @@ router.post("/:id/statut", authenticateToken, changeStatutReservation);
  *         description: Réservation non trouvée
  */
 router.patch('/:id/annuler', authenticateToken, cancelReservation);
+
+/**
+ * @swagger
+ * /conducteur/reservations:
+ *   get:
+ *     summary: Récupérer toutes les réservations pour les trajets dont l'utilisateur connecté est le conducteur
+ *     tags: [Reservations]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: page
+ *         schema:
+ *           type: integer
+ *           default: 1
+ *         description: Numéro de page pour la pagination
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *           default: 10
+ *         description: Nombre d'éléments par page
+ *     responses:
+ *       200:
+ *         description: Liste paginée des réservations pour les trajets du conducteur
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 page:
+ *                   type: integer
+ *                 limit:
+ *                   type: integer
+ *                 total:
+ *                   type: integer
+ *                 data:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *       401:
+ *         description: Non autorisé
+ *     examples:
+ *       application/json:
+ *         value:
+ *           success: true
+ *           page: 1
+ *           limit: 10
+ *           total: 8
+ *           data: [ { id_reservation: 1, ... }, ... ]
+ */
+router.get("/conducteur/reservations", authenticateToken, getReservationsForDriver);
+
+router.get('/:id', authenticateToken, require('../controllers/reservationController').getReservationById);
 
 module.exports = router;

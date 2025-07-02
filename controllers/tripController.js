@@ -1,4 +1,5 @@
 const prisma = require('../prisma/prisma');
+const notificationService = require('../services/notificationService');
 
 exports.createTrip = async (req, res) => {
   try {
@@ -58,7 +59,7 @@ exports.createTrip = async (req, res) => {
 
 exports.getTrips = async (req, res) => {
   try {
-    const { ville_depart, ville_arrivee, date } = req.query;
+    const { ville_depart, ville_arrivee, date, page = 1, limit = 10 } = req.query;
 
     const filters = {};
 
@@ -81,23 +82,33 @@ exports.getTrips = async (req, res) => {
       };
     }
 
-    const trips = await prisma.trajet.findMany({
-      where: filters,
-      include: {
-        conducteur: {
-          select: {
-            id_utilisateur: true,
-            nom: true,
-            photo_profil: true,
+    const skip = (parseInt(page) - 1) * parseInt(limit);
+    const take = parseInt(limit);
+
+    const [trips, total] = await Promise.all([
+      prisma.trajet.findMany({
+        where: filters,
+        include: {
+          conducteur: {
+            select: {
+              id_utilisateur: true,
+              nom: true,
+              photo_profil: true,
+            },
           },
         },
-      },
-      orderBy: { date_heure_depart: "asc" },
-    });
+        orderBy: { date_heure_depart: "asc" },
+        skip,
+        take
+      }),
+      prisma.trajet.count({ where: filters })
+    ]);
 
     res.status(200).json({
       success: true,
-      message: `${trips.length} trip(s) found.`,
+      page: parseInt(page),
+      limit: parseInt(limit),
+      total,
       data: trips.map(trip => ({
         ...trip,
         links: generateTripLinks(trip)
@@ -185,8 +196,30 @@ exports.deleteTrip = async (req, res) => {
       return res.status(403).json({ success: false, message: "Unauthorized to delete this trip." });
     }
 
+    // Récupérer toutes les réservations liées au trajet
+    const reservations = await prisma.reservation.findMany({
+      where: { trajet_id: tripId },
+      include: { passager: true }
+    });
+
+    // Notifier chaque passager de l'annulation
+    for (const reservation of reservations) {
+      await notificationService.createNotification({
+        utilisateur_id: reservation.passager_id,
+        reservation_id: reservation.id_reservation,
+        type: 'annulation',
+        contenu_message: `Votre réservation pour le trajet de ${trip.ville_depart} à ${trip.ville_arrivee} a été annulée car le trajet a été supprimé.`
+      });
+    }
+
+    // Supprimer toutes les réservations liées au trajet
+    await prisma.reservation.deleteMany({
+      where: { trajet_id: tripId }
+    });
+
+    // Supprimer le trajet
     await prisma.trajet.delete({
-      where: { id_trajet: tripId },
+      where: { id_trajet: tripId }
     });
 
     return res.status(200).json({
@@ -227,3 +260,77 @@ function generateTripLinks(trip) {
     }
   };
 }
+
+// GET /conducteur/trajets : liste des trajets proposés par le conducteur connecté
+exports.getTripsForDriver = async (req, res) => {
+    try {
+        const utilisateur = req.user;
+        const { page = 1, limit = 10 } = req.query;
+        const skip = (parseInt(page) - 1) * parseInt(limit);
+        const take = parseInt(limit);
+        const [trips, total] = await Promise.all([
+            prisma.trajet.findMany({
+                where: {
+                    conducteur_id: utilisateur.id_utilisateur
+                },
+                include: {
+                    reservations: {
+                        include: { passager: true }
+                    }
+                },
+                skip,
+                take
+            }),
+            prisma.trajet.count({
+                where: {
+                    conducteur_id: utilisateur.id_utilisateur
+                }
+            })
+        ]);
+        return res.status(200).json({
+            success: true,
+            page: parseInt(page),
+            limit: parseInt(limit),
+            total,
+            data: trips
+        });
+    } catch (error) {
+        console.error("Erreur lors de la récupération des trajets du conducteur :", error);
+        res.status(500).json({
+            success: false,
+            message: "Erreur interne lors de la récupération des trajets du conducteur."
+        });
+    }
+};
+
+// GET /trips/:id : récupérer un trajet précis
+exports.getTripById = async (req, res) => {
+    try {
+        const tripId = parseInt(req.params.id, 10);
+        const trip = await prisma.trajet.findUnique({
+            where: { id_trajet: tripId },
+            include: {
+                conducteur: true,
+                reservations: {
+                    include: { passager: true }
+                }
+            }
+        });
+        if (!trip) {
+            return res.status(404).json({
+                success: false,
+                message: "Trajet non trouvé."
+            });
+        }
+        return res.status(200).json({
+            success: true,
+            data: trip
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: "Erreur interne lors de la récupération du trajet.",
+            error: error.message
+        });
+    }
+};
