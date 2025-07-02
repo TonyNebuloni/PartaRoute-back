@@ -159,4 +159,6 @@ router.patch('/:id/annuler', authenticateToken, cancelReservation);
  */
 router.get("/conducteur/reservations", authenticateToken, getReservationsForDriver);
 
+router.get('/:id', authenticateToken, require('../controllers/reservationController').getReservationById);
+
 module.exports = router;

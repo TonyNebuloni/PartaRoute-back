@@ -185,8 +185,32 @@ exports.deleteTrip = async (req, res) => {
       return res.status(403).json({ success: false, message: "Unauthorized to delete this trip." });
     }
 
+    // Récupérer toutes les réservations liées au trajet
+    const reservations = await prisma.reservation.findMany({
+      where: { trajet_id: tripId },
+      include: { passager: true }
+    });
+
+    // Notifier chaque passager de l'annulation
+    for (const reservation of reservations) {
+      await prisma.notification.create({
+        data: {
+          utilisateur_id: reservation.passager_id,
+          reservation_id: reservation.id_reservation,
+          type: 'annulation',
+          contenu_message: `Votre réservation pour le trajet de ${trip.ville_depart} à ${trip.ville_arrivee} a été annulée car le trajet a été supprimé.`
+        }
+      });
+    }
+
+    // Supprimer toutes les réservations liées au trajet
+    await prisma.reservation.deleteMany({
+      where: { trajet_id: tripId }
+    });
+
+    // Supprimer le trajet
     await prisma.trajet.delete({
-      where: { id_trajet: tripId },
+      where: { id_trajet: tripId }
     });
 
     return res.status(200).json({
@@ -227,3 +251,30 @@ function generateTripLinks(trip) {
     }
   };
 }
+
+// GET /conducteur/trajets : liste des trajets proposés par le conducteur connecté
+exports.getTripsForDriver = async (req, res) => {
+    try {
+        const utilisateur = req.user;
+        const trips = await prisma.trajet.findMany({
+            where: {
+                conducteur_id: utilisateur.id_utilisateur
+            },
+            include: {
+                reservations: {
+                    include: { passager: true }
+                }
+            }
+        });
+        return res.status(200).json({
+            success: true,
+            data: trips
+        });
+    } catch (error) {
+        console.error("Erreur lors de la récupération des trajets du conducteur :", error);
+        res.status(500).json({
+            success: false,
+            message: "Erreur interne lors de la récupération des trajets du conducteur."
+        });
+    }
+};

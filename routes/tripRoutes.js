@@ -152,4 +152,31 @@ router.patch("/:id", authenticateToken, updateTrip);
  */
 router.delete("/:id", authenticateToken, deleteTrip);
 
+/**
+ * @swagger
+ * /trips/conducteur/trajets:
+ *   get:
+ *     summary: Récupérer tous les trajets proposés par le conducteur connecté
+ *     tags: [Trips]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Liste des trajets du conducteur récupérée avec succès
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 data:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *       401:
+ *         description: Non autorisé
+ */
+router.get("/conducteur/trajets", authenticateToken, require("../controllers/tripController").getTripsForDriver);
+
 module.exports = router;

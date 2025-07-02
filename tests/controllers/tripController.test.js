@@ -20,6 +20,12 @@ app.delete('/trips/:id', (req, res, next) => {
     next();
 }, tripController.deleteTrip);
 
+// Ajout de la route simulée pour le conducteur
+app.get('/trips/conducteur/trajets', (req, res, next) => {
+    req.user = { id_utilisateur: 42 };
+    next();
+}, tripController.getTripsForDriver);
+
 describe('GET /trips', () => {
     it('doit retourner une liste de trajets filtrés', async () => {
         prisma.trajet.findMany.mockResolvedValue([
@@ -69,5 +75,44 @@ describe('DELETE /trips/:id', () => {
 
         expect(res.statusCode).toBe(200);
         expect(res.body.success).toBe(true);
+    });
+});
+
+describe('GET /trips/conducteur/trajets', () => {
+    it('doit retourner tous les trajets du conducteur avec réservations et passagers', async () => {
+        prisma.trajet.findMany.mockResolvedValue([
+            {
+                id_trajet: 1,
+                ville_depart: 'Paris',
+                ville_arrivee: 'Lyon',
+                conducteur_id: 42,
+                reservations: [
+                    {
+                        id_reservation: 10,
+                        statut: 'en_attente',
+                        passager: { id_utilisateur: 2, nom: 'Alice' }
+                    }
+                ]
+            },
+            {
+                id_trajet: 2,
+                ville_depart: 'Lyon',
+                ville_arrivee: 'Marseille',
+                conducteur_id: 42,
+                reservations: []
+            }
+        ]);
+
+        const res = await request(app).get('/trips/conducteur/trajets');
+        expect(res.statusCode).toBe(200);
+        expect(res.body.success).toBe(true);
+        expect(Array.isArray(res.body.data)).toBe(true);
+        expect(res.body.data.length).toBe(2);
+        expect(res.body.data[0]).toHaveProperty('id_trajet');
+        expect(res.body.data[0]).toHaveProperty('reservations');
+        expect(Array.isArray(res.body.data[0].reservations)).toBe(true);
+        expect(res.body.data[0].reservations[0]).toHaveProperty('passager');
+        expect(res.body.data[0].reservations[0].passager.nom).toBe('Alice');
+        expect(res.body.data[1].reservations.length).toBe(0);
     });
 });

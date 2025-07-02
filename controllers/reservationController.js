@@ -71,6 +71,16 @@ exports.createReservation = async (req, res) => {
             },
         });
 
+        // Création de la notification pour le conducteur
+        await prisma.notification.create({
+            data: {
+                utilisateur_id: trajet.conducteur_id,
+                reservation_id: reservation.id_reservation,
+                type: 'demande_reservation',
+                contenu_message: `Nouvelle demande de réservation pour votre trajet de ${trajet.ville_depart} à ${trajet.ville_arrivee}.`
+            }
+        });
+
         return res.status(200).json({
             success: true,
             message: "Réservation créée avec succès.",
@@ -194,7 +204,7 @@ exports.changeStatutReservation = async (req, res) => {
             if (reservation.trajet.places_disponibles < 1) {
                 return res.status(400).json({
                     success: false,
-                    message: "Aucune place disponible pour accepter cette réservation.",
+                    message: "Aucune place disponible pour accepter cette réservation."
                 });
             }
 
@@ -208,20 +218,39 @@ exports.changeStatutReservation = async (req, res) => {
                     data: { places_disponibles: { decrement: 1 } }
                 })
             ]);
+
+            // Création de la notification pour le passager (acceptée)
+            await prisma.notification.create({
+                data: {
+                    utilisateur_id: reservation.passager_id,
+                    reservation_id: reservation.id_reservation,
+                    type: 'confirmation',
+                    contenu_message: `Votre réservation pour le trajet de ${reservation.trajet.ville_depart} à ${reservation.trajet.ville_arrivee} a été acceptée.`
+                }
+            });
         } else {
             // Refus = juste le statut
             updatedReservation = await prisma.reservation.update({
                 where: { id_reservation: reservationId },
                 data: { statut: 'refusee' }
             });
+
+            // Création de la notification pour le passager (refusée)
+            await prisma.notification.create({
+                data: {
+                    utilisateur_id: reservation.passager_id,
+                    reservation_id: reservation.id_reservation,
+                    type: 'refus',
+                    contenu_message: `Votre réservation pour le trajet de ${reservation.trajet.ville_depart} à ${reservation.trajet.ville_arrivee} a été refusée.`
+                }
+            });
         }
 
         return res.status(200).json({
             success: true,
-            data: reservations.map(reservation => ({
-                ...reservation,
-                links: generateReservationLinks(reservation)
-            }))
+            reservation: updatedReservation,
+            trajet: updatedTrajet,
+            links: generateReservationLinks(updatedReservation)
         });
     } catch (error) {
         console.error("Erreur lors du changement de statut de la réservation :", error);
@@ -334,6 +363,33 @@ exports.getReservationsForDriver = async (req, res) => {
         res.status(500).json({
             success: false,
             message: "Erreur interne lors de la récupération des réservations conducteur."
+        });
+    }
+};
+
+// GET /:id : récupérer une réservation précise
+exports.getReservationById = async (req, res) => {
+    try {
+        const reservationId = parseInt(req.params.id, 10);
+        const reservation = await prisma.reservation.findUnique({
+            where: { id_reservation: reservationId },
+            include: { trajet: true, passager: true }
+        });
+        if (!reservation) {
+            return res.status(404).json({
+                success: false,
+                message: "Réservation non trouvée."
+            });
+        }
+        return res.status(200).json({
+            success: true,
+            data: reservation
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: "Erreur interne lors de la récupération de la réservation.",
+            error: error.message
         });
     }
 };
