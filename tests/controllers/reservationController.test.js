@@ -39,6 +39,10 @@ app.get('/conducteur/reservations', (req, res, next) => {
 // TESTS
 // ============================
 
+beforeEach(() => {
+    prisma.reservation.count = jest.fn().mockResolvedValue(1);
+});
+
 describe('POST /reservations', () => {
     it('devrait créer une réservation', async () => {
         prisma.trajet.findUnique.mockResolvedValue({

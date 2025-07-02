@@ -1,4 +1,5 @@
 const prisma = require('../prisma/prisma');
+const notificationService = require('../services/notificationService');
 
 // Create a new reservation
 exports.createReservation = async (req, res) => {
@@ -72,13 +73,11 @@ exports.createReservation = async (req, res) => {
         });
 
         // Création de la notification pour le conducteur
-        await prisma.notification.create({
-            data: {
-                utilisateur_id: trajet.conducteur_id,
-                reservation_id: reservation.id_reservation,
-                type: 'demande_reservation',
-                contenu_message: `Nouvelle demande de réservation pour votre trajet de ${trajet.ville_depart} à ${trajet.ville_arrivee}.`
-            }
+        await notificationService.createNotification({
+            utilisateur_id: trajet.conducteur_id,
+            reservation_id: reservation.id_reservation,
+            type: 'demande_reservation',
+            contenu_message: `Nouvelle demande de réservation pour votre trajet de ${trajet.ville_depart} à ${trajet.ville_arrivee}.`
         });
 
         return res.status(201).json({
@@ -102,7 +101,7 @@ exports.createReservation = async (req, res) => {
 exports.getReservations = async (req, res) => {
     try {
         const utilisateur = req.user;
-        const { search, date } = req.query;
+        const { search, date, page = 1, limit = 10 } = req.query;
 
         const filters = {
             passager_id: utilisateur.id_utilisateur,
@@ -128,16 +127,27 @@ exports.getReservations = async (req, res) => {
             };
         }
 
-        const reservations = await prisma.reservation.findMany({
-            where: filters,
-            include: {
-                trajet: true,
-                passager: true,
-            },
-        });
+        const skip = (parseInt(page) - 1) * parseInt(limit);
+        const take = parseInt(limit);
+
+        const [reservations, total] = await Promise.all([
+            prisma.reservation.findMany({
+                where: filters,
+                include: {
+                    trajet: true,
+                    passager: true,
+                },
+                skip,
+                take
+            }),
+            prisma.reservation.count({ where: filters })
+        ]);
 
         return res.status(200).json({
             success: true,
+            page: parseInt(page),
+            limit: parseInt(limit),
+            total,
             data: reservations.map(reservation => ({
                 ...reservation,
                 links: generateReservationLinks(reservation)
@@ -148,6 +158,7 @@ exports.getReservations = async (req, res) => {
         res.status(500).json({
             success: false,
             message: "Erreur interne lors de la récupération des réservations.",
+            error: error.message
         });
     }
 };
@@ -220,13 +231,11 @@ exports.changeStatutReservation = async (req, res) => {
             ]);
 
             // Création de la notification pour le passager (acceptée)
-            await prisma.notification.create({
-                data: {
-                    utilisateur_id: reservation.passager_id,
-                    reservation_id: reservation.id_reservation,
-                    type: 'confirmation',
-                    contenu_message: `Votre réservation pour le trajet de ${reservation.trajet.ville_depart} à ${reservation.trajet.ville_arrivee} a été acceptée.`
-                }
+            await notificationService.createNotification({
+                utilisateur_id: reservation.passager_id,
+                reservation_id: reservation.id_reservation,
+                type: 'confirmation',
+                contenu_message: `Votre réservation pour le trajet de ${reservation.trajet.ville_depart} à ${reservation.trajet.ville_arrivee} a été acceptée.`
             });
         } else {
             // Refus = juste le statut
@@ -236,13 +245,11 @@ exports.changeStatutReservation = async (req, res) => {
             });
 
             // Création de la notification pour le passager (refusée)
-            await prisma.notification.create({
-                data: {
-                    utilisateur_id: reservation.passager_id,
-                    reservation_id: reservation.id_reservation,
-                    type: 'refus',
-                    contenu_message: `Votre réservation pour le trajet de ${reservation.trajet.ville_depart} à ${reservation.trajet.ville_arrivee} a été refusée.`
-                }
+            await notificationService.createNotification({
+                utilisateur_id: reservation.passager_id,
+                reservation_id: reservation.id_reservation,
+                type: 'refus',
+                contenu_message: `Votre réservation pour le trajet de ${reservation.trajet.ville_depart} à ${reservation.trajet.ville_arrivee} a été refusée.`
             });
         }
 
@@ -337,20 +344,37 @@ exports.cancelReservation = async (req, res) => {
 exports.getReservationsForDriver = async (req, res) => {
     try {
         const utilisateur = req.user;
+        const { page = 1, limit = 10 } = req.query;
+        const skip = (parseInt(page) - 1) * parseInt(limit);
+        const take = parseInt(limit);
         // On récupère toutes les réservations dont le trajet a pour conducteur l'utilisateur connecté
-        const reservations = await prisma.reservation.findMany({
-            where: {
-                trajet: {
-                    conducteur_id: utilisateur.id_utilisateur
+        const [reservations, total] = await Promise.all([
+            prisma.reservation.findMany({
+                where: {
+                    trajet: {
+                        conducteur_id: utilisateur.id_utilisateur
+                    }
+                },
+                include: {
+                    trajet: true,
+                    passager: true
+                },
+                skip,
+                take
+            }),
+            prisma.reservation.count({
+                where: {
+                    trajet: {
+                        conducteur_id: utilisateur.id_utilisateur
+                    }
                 }
-            },
-            include: {
-                trajet: true,
-                passager: true
-            }
-        });
+            })
+        ]);
         return res.status(200).json({
             success: true,
+            page: parseInt(page),
+            limit: parseInt(limit),
+            total,
             data: reservations.map(r => ({
                 id_reservation: r.id_reservation,
                 statut: r.statut,

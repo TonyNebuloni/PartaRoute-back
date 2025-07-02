@@ -28,6 +28,7 @@ app.get('/trips/conducteur/trajets', (req, res, next) => {
 
 beforeEach(() => {
     prisma.reservation.deleteMany = jest.fn().mockResolvedValue({});
+    prisma.trajet.count = jest.fn().mockResolvedValue(1);
 });
 
 describe('GET /trips', () => {

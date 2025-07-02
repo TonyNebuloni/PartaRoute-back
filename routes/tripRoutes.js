@@ -72,9 +72,48 @@ router.post("/", authenticateToken, createTrip);
  *           type: string
  *           format: date
  *         description: Date de départ (YYYY-MM-DD)
+ *       - in: query
+ *         name: page
+ *         schema:
+ *           type: integer
+ *           default: 1
+ *         description: Numéro de page pour la pagination
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *           default: 10
+ *         description: Nombre d'éléments par page
  *     responses:
  *       200:
- *         description: Liste des trajets
+ *         description: Liste paginée des trajets
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 page:
+ *                   type: integer
+ *                 limit:
+ *                   type: integer
+ *                 total:
+ *                   type: integer
+ *                 data:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *       401:
+ *         description: Non autorisé
+ *     examples:
+ *       application/json:
+ *         value:
+ *           success: true
+ *           page: 1
+ *           limit: 10
+ *           total: 42
+ *           data: [ { id_trajet: 1, ... }, ... ]
  */
 router.get("/", getTrips);
 
@@ -160,9 +199,22 @@ router.delete("/:id", authenticateToken, deleteTrip);
  *     tags: [Trips]
  *     security:
  *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: page
+ *         schema:
+ *           type: integer
+ *           default: 1
+ *         description: Numéro de page pour la pagination
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *           default: 10
+ *         description: Nombre d'éléments par page
  *     responses:
  *       200:
- *         description: Liste des trajets du conducteur récupérée avec succès
+ *         description: Liste paginée des trajets du conducteur
  *         content:
  *           application/json:
  *             schema:
@@ -170,12 +222,26 @@ router.delete("/:id", authenticateToken, deleteTrip);
  *               properties:
  *                 success:
  *                   type: boolean
+ *                 page:
+ *                   type: integer
+ *                 limit:
+ *                   type: integer
+ *                 total:
+ *                   type: integer
  *                 data:
  *                   type: array
  *                   items:
  *                     type: object
  *       401:
  *         description: Non autorisé
+ *     examples:
+ *       application/json:
+ *         value:
+ *           success: true
+ *           page: 1
+ *           limit: 10
+ *           total: 5
+ *           data: [ { id_trajet: 1, ... }, ... ]
  */
 router.get("/conducteur/trajets", authenticateToken, require("../controllers/tripController").getTripsForDriver);
 

@@ -1,4 +1,5 @@
 const prisma = require('../prisma/prisma');
+const notificationService = require('../services/notificationService');
 
 exports.createTrip = async (req, res) => {
   try {
@@ -58,7 +59,7 @@ exports.createTrip = async (req, res) => {
 
 exports.getTrips = async (req, res) => {
   try {
-    const { ville_depart, ville_arrivee, date } = req.query;
+    const { ville_depart, ville_arrivee, date, page = 1, limit = 10 } = req.query;
 
     const filters = {};
 
@@ -81,23 +82,33 @@ exports.getTrips = async (req, res) => {
       };
     }
 
-    const trips = await prisma.trajet.findMany({
-      where: filters,
-      include: {
-        conducteur: {
-          select: {
-            id_utilisateur: true,
-            nom: true,
-            photo_profil: true,
+    const skip = (parseInt(page) - 1) * parseInt(limit);
+    const take = parseInt(limit);
+
+    const [trips, total] = await Promise.all([
+      prisma.trajet.findMany({
+        where: filters,
+        include: {
+          conducteur: {
+            select: {
+              id_utilisateur: true,
+              nom: true,
+              photo_profil: true,
+            },
           },
         },
-      },
-      orderBy: { date_heure_depart: "asc" },
-    });
+        orderBy: { date_heure_depart: "asc" },
+        skip,
+        take
+      }),
+      prisma.trajet.count({ where: filters })
+    ]);
 
     res.status(200).json({
       success: true,
-      message: `${trips.length} trip(s) found.`,
+      page: parseInt(page),
+      limit: parseInt(limit),
+      total,
       data: trips.map(trip => ({
         ...trip,
         links: generateTripLinks(trip)
@@ -193,13 +204,11 @@ exports.deleteTrip = async (req, res) => {
 
     // Notifier chaque passager de l'annulation
     for (const reservation of reservations) {
-      await prisma.notification.create({
-        data: {
-          utilisateur_id: reservation.passager_id,
-          reservation_id: reservation.id_reservation,
-          type: 'annulation',
-          contenu_message: `Votre réservation pour le trajet de ${trip.ville_depart} à ${trip.ville_arrivee} a été annulée car le trajet a été supprimé.`
-        }
+      await notificationService.createNotification({
+        utilisateur_id: reservation.passager_id,
+        reservation_id: reservation.id_reservation,
+        type: 'annulation',
+        contenu_message: `Votre réservation pour le trajet de ${trip.ville_depart} à ${trip.ville_arrivee} a été annulée car le trajet a été supprimé.`
       });
     }
 
@@ -256,18 +265,33 @@ function generateTripLinks(trip) {
 exports.getTripsForDriver = async (req, res) => {
     try {
         const utilisateur = req.user;
-        const trips = await prisma.trajet.findMany({
-            where: {
-                conducteur_id: utilisateur.id_utilisateur
-            },
-            include: {
-                reservations: {
-                    include: { passager: true }
+        const { page = 1, limit = 10 } = req.query;
+        const skip = (parseInt(page) - 1) * parseInt(limit);
+        const take = parseInt(limit);
+        const [trips, total] = await Promise.all([
+            prisma.trajet.findMany({
+                where: {
+                    conducteur_id: utilisateur.id_utilisateur
+                },
+                include: {
+                    reservations: {
+                        include: { passager: true }
+                    }
+                },
+                skip,
+                take
+            }),
+            prisma.trajet.count({
+                where: {
+                    conducteur_id: utilisateur.id_utilisateur
                 }
-            }
-        });
+            })
+        ]);
         return res.status(200).json({
             success: true,
+            page: parseInt(page),
+            limit: parseInt(limit),
+            total,
             data: trips
         });
     } catch (error) {

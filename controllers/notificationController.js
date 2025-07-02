@@ -5,26 +5,38 @@ const prisma = require('../prisma/prisma');
 exports.getAllNotifications = async (req, res) => {
     try {
         const utilisateurId = parseInt(req.params.utilisateurId);
-
+        const { page = 1, limit = 10 } = req.query;
         if (!utilisateurId) {
             return res.status(400).json({
                 success: false,
                 message: "L'identifiant de l'utilisateur doit être fourni."
             });
         }
-
-        const notifications = await prisma.notification.findMany({
-            where: {
-                utilisateur_id: utilisateurId,
-            },
-            orderBy: [
-                { lue: 'asc' }, // Les non lues (false) en premier
-                { date_notification: 'desc' }
-            ]
-        });
-
+        const skip = (parseInt(page) - 1) * parseInt(limit);
+        const take = parseInt(limit);
+        const [notifications, total] = await Promise.all([
+            prisma.notification.findMany({
+                where: {
+                    utilisateur_id: utilisateurId,
+                },
+                orderBy: [
+                    { lue: 'asc' }, // Les non lues (false) en premier
+                    { date_notification: 'desc' }
+                ],
+                skip,
+                take
+            }),
+            prisma.notification.count({
+                where: {
+                    utilisateur_id: utilisateurId
+                }
+            })
+        ]);
         return res.status(200).json({
             success: true,
+            page: parseInt(page),
+            limit: parseInt(limit),
+            total,
             data: notifications.map(notification => ({
                 ...notification,
                 links: generateNotificationLinks(notification)
