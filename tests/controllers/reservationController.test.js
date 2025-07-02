@@ -154,3 +154,70 @@ describe('GET /conducteur/reservations', () => {
         expect(res.body.data[0].trajet.conducteur_id).toBe(42);
     });
 });
+
+describe('POST /reservations - logique de places disponibles', () => {
+    it('refuse la réservation si toutes les places sont déjà acceptées', async () => {
+        prisma.trajet.findUnique.mockResolvedValue({
+            id_trajet: 1,
+            places_disponibles: 2,
+            reservations: [
+                { statut: 'acceptee' },
+                { statut: 'acceptee' }
+            ],
+            conducteur_id: 2
+        });
+        prisma.reservation.findFirst.mockResolvedValue(null);
+        const res = await request(app).post('/reservations').send({ trajet_id: 1 });
+        expect(res.statusCode).toBe(400);
+        expect(res.body.success).toBe(false);
+        expect(res.body.message).toMatch(/Aucune place disponible/);
+    });
+
+    it('accepte la réservation si des réservations en attente existent mais pas assez d\'acceptées', async () => {
+        prisma.trajet.findUnique.mockResolvedValue({
+            id_trajet: 1,
+            places_disponibles: 2,
+            reservations: [
+                { statut: 'acceptee' },
+                { statut: 'en_attente' }
+            ],
+            conducteur_id: 2
+        });
+        prisma.reservation.findFirst.mockResolvedValue(null);
+        prisma.reservation.create.mockResolvedValue({ id_reservation: 2 });
+        const res = await request(app).post('/reservations').send({ trajet_id: 1 });
+        expect(res.statusCode).toBe(201);
+        expect(res.body.success).toBe(true);
+    });
+
+    it('accepte la réservation si aucune réservation', async () => {
+        prisma.trajet.findUnique.mockResolvedValue({
+            id_trajet: 1,
+            places_disponibles: 2,
+            reservations: [],
+            conducteur_id: 2
+        });
+        prisma.reservation.findFirst.mockResolvedValue(null);
+        prisma.reservation.create.mockResolvedValue({ id_reservation: 3 });
+        const res = await request(app).post('/reservations').send({ trajet_id: 1 });
+        expect(res.statusCode).toBe(201);
+        expect(res.body.success).toBe(true);
+    });
+
+    it('accepte la réservation si toutes les réservations sont refusées', async () => {
+        prisma.trajet.findUnique.mockResolvedValue({
+            id_trajet: 1,
+            places_disponibles: 2,
+            reservations: [
+                { statut: 'refusee' },
+                { statut: 'refusee' }
+            ],
+            conducteur_id: 2
+        });
+        prisma.reservation.findFirst.mockResolvedValue(null);
+        prisma.reservation.create.mockResolvedValue({ id_reservation: 4 });
+        const res = await request(app).post('/reservations').send({ trajet_id: 1 });
+        expect(res.statusCode).toBe(201);
+        expect(res.body.success).toBe(true);
+    });
+});
