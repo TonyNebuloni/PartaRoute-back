@@ -55,6 +55,7 @@ app.use((err, req, res, next) => {
     message: "Erreur interne du serveur.",
   });
 });
-app.listen(port, () => {
+
+/*app.listen(port, () => {
   console.log(`✅ Serveur sécurisé actif sur http://localhost:${port}`);
-});
+});*/
