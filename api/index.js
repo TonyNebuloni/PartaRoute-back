@@ -17,7 +17,9 @@ app.use(cors());
 app.use(express.json());
 
 // Sert les fichiers statiques comme /docs et /swagger.json
-app.use(express.static(path.resolve(__dirname, "../public")));
+app.get("/swagger.json", (req, res) => {
+    res.sendFile(path.resolve(__dirname, "../../public/swagger.json"));
+});
 
 app.use("/api/auth", authRoutes);
 app.use("/api/user", userRoutes);
