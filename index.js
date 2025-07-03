@@ -7,34 +7,28 @@ const authMiddleware = require('./middlewares/auth');
 const app = express();
 const port = 3000;
 const cors = require("cors");
+const path = require("path");
 
 // Importation des routes
 const authRoutes = require("./routes/authRoutes");
-
 const notificationRoutes = require("./routes/notificationRoutes");
-
 const reservationRoutes = require("./routes/reservationRoutes");
-
 const tripRoutes = require("./routes/tripRoutes");
-
 const userRoutes = require("./routes/userRoutes");
-
 const adminRoutes = require("./routes/adminRoutes");
 
 app.use(cors());
 app.use(express.json());
 
+// Sert les fichiers statiques (Swagger UI, images, etc.)
+app.use(express.static(path.join(__dirname, "public")));
+
 // Utilisation des routes
 app.use("/api/auth", authRoutes);
-
 app.use("/api/user", userRoutes);
-
 app.use("/api/admin", adminRoutes);
-
 app.use("/api/reservations", reservationRoutes);
-
 app.use("/api/trips", tripRoutes);
-
 app.use("/api/notifications", notificationRoutes);
 
 app.use('/uploads', express.static('uploads'));
@@ -68,13 +62,15 @@ app.post('/api/user/upload-photo', authMiddleware, upload.single('photo'), async
   }
 });
 
+
 app.get("/", (req, res) => {
-  res.send("Bienvenue sur l'API !");
+  res.send(`
+    <h1>Bienvenue sur l'API PartaRoute</h1>
+    <p><a href="/docs">Voir la documentation Swagger</a></p>
+  `);
 });
 
-const setupSwagger = require("./docs/swagger.js");
-setupSwagger(app);
-
+// Middleware 404
 app.use((req, res, next) => {
   res.status(404).json({
     success: false,
@@ -82,7 +78,7 @@ app.use((req, res, next) => {
   });
 });
 
-// Gestion globale des erreurs (500)
+// Middleware global pour erreurs 500
 app.use((err, req, res, next) => {
   console.error("Erreur serveur :", err);
   res.status(500).json({
@@ -91,6 +87,8 @@ app.use((err, req, res, next) => {
   });
 });
 
+// Démarrage du serveur
 app.listen(port, () => {
-  console.log(`✅ Serveur sécurisé actif sur http://localhost:${port}`);
+  console.log(`✅ Serveur actif sur http://localhost:${port}`);
+  console.log(`📘 Swagger disponible sur http://localhost:${port}/docs`);
 });

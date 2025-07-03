@@ -1,5 +1,6 @@
-const swaggerJSDoc = require("swagger-jsdoc");
 const fs = require("fs");
+const path = require("path");
+const swaggerJSDoc = require("swagger-jsdoc");
 
 const options = {
     definition: {
@@ -7,12 +8,33 @@ const options = {
         info: {
             title: "PartaRoute API",
             version: "1.0.0",
+            description: "Documentation générée automatiquement",
         },
-        servers: [{ url: "https://ton-projet.vercel.app/api" }],
+        servers: [
+            {
+                url: "http://localhost:3000/api"
+            }
+        ],
+        components: {
+            securitySchemes: {
+                bearerAuth: {
+                    type: "http",
+                    scheme: "bearer",
+                    bearerFormat: "JWT"
+                }
+            }
+        },
+        security: [
+            {
+                bearerAuth: []
+            }
+        ]
     },
-    apis: ["./routes/*.js"],
+    apis: [path.join(__dirname, "routes/*.js")] // Important
 };
 
 const swaggerSpec = swaggerJSDoc(options);
-fs.writeFileSync("./public/swagger.json", JSON.stringify(swaggerSpec, null, 2));
-console.log("✅ Swagger JSON généré dans /public/swagger.json");
+
+// Sauvegarde dans /public
+fs.writeFileSync(path.join(__dirname, "public/swagger.json"), JSON.stringify(swaggerSpec, null, 2));
+console.log("✅ swagger.json généré automatiquement dans /public");

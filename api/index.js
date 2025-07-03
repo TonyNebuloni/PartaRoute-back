@@ -3,6 +3,7 @@ const app = express();
 const serverless = require("serverless-http");
 require("dotenv").config();
 const cors = require("cors");
+const path = require("path");
 
 // Routes
 const authRoutes = require("../routes/authRoutes");
@@ -15,16 +16,15 @@ const adminRoutes = require("../routes/adminRoutes");
 app.use(cors());
 app.use(express.json());
 
+// Sert les fichiers statiques comme /docs et /swagger.json
+app.use(express.static(path.join(__dirname, "../public")));
+
 app.use("/api/auth", authRoutes);
 app.use("/api/user", userRoutes);
 app.use("/api/admin", adminRoutes);
 app.use("/api/reservations", reservationRoutes);
 app.use("/api/trips", tripRoutes);
 app.use("/api/notifications", notificationRoutes);
-
-app.get("/", (req, res) => {
-    res.send("Bienvenue sur l'API !");
-});
 
 app.get("/", (req, res) => {
     res.send(`
