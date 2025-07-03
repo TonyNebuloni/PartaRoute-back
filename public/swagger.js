@@ -32,7 +32,7 @@ const options = {
       },
     ],
   },
-  apis: ["./routes/*.js"], // Assure-toi que le chemin est correct selon ton projet
+  apis: [path.join(__dirname, "../routes/*.js")]
 };
 
 // Génération du swaggerSpec
