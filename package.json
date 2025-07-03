@@ -6,7 +6,8 @@
   "scripts": {
     "test": "jest",
     "start": "node index",
-    "dev": "nodemon index.js"
+    "dev": "nodemon index.js",
+    "postinstall": "prisma generate"
   },
   "repository": {
     "type": "git",
