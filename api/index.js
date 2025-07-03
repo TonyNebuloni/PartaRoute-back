@@ -15,7 +15,23 @@ const tripRoutes = require("../routes/tripRoutes");
 const userRoutes = require("../routes/userRoutes");
 const adminRoutes = require("../routes/adminRoutes");
 
-app.use(cors());
+const allowedOrigins = [
+  "https://parta-route-front-b88y4xukk-tony-nebulonis-projects-241318b8.vercel.app",
+  "http://localhost:3000",
+  "http://localhost:5173"
+];
+
+app.use(cors({
+  origin: function (origin, callback) {
+    if (!origin || allowedOrigins.indexOf(origin) !== -1) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
+  credentials: true,
+  allowedHeaders: ['Content-Type', 'Authorization']
+}));
 app.use(express.json());
 
 // Sert les fichiers statiques comme /docs et /swagger.json
