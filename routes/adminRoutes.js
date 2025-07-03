@@ -117,4 +117,113 @@ router.put('/users/:id', authMiddleware, adminOnly, userController.editUserByAdm
  */
 router.delete('/users/:id', authMiddleware, adminOnly, userController.deleteUserByAdmin);
 
+/**
+ * @swagger
+ * /admin/user/{id}/promote:
+ *   patch:
+ *     summary: Promouvoir un utilisateur en administrateur
+ *     tags: [Admin]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         schema:
+ *           type: integer
+ *         required: true
+ *         description: ID de l'utilisateur à promouvoir
+ *     responses:
+ *       200:
+ *         description: Utilisateur promu admin
+ *       403:
+ *         description: Accès interdit
+ *       404:
+ *         description: Utilisateur non trouvé
+ */
+router.patch('/user/:id/promote', authMiddleware, adminOnly, userController.promoteToAdmin);
+
+/**
+ * @swagger
+ * /admin/stats:
+ *   get:
+ *     summary: Statistiques globales du dashboard admin
+ *     tags: [Admin]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Statistiques globales
+ */
+router.get('/stats', authMiddleware, adminOnly, userController.getAdminStats);
+
+/**
+ * @swagger
+ * /admin/trips:
+ *   get:
+ *     summary: Liste de tous les trajets
+ *     tags: [Admin]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Liste des trajets
+ */
+router.get('/trips', authMiddleware, adminOnly, userController.getAllTrips);
+
+/**
+ * @swagger
+ * /admin/trips/{id}:
+ *   delete:
+ *     summary: Supprimer un trajet par son ID
+ *     tags: [Admin]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         schema:
+ *           type: integer
+ *         required: true
+ *         description: ID du trajet à supprimer
+ *     responses:
+ *       200:
+ *         description: Trajet supprimé
+ */
+router.delete('/trips/:id', authMiddleware, adminOnly, userController.deleteTrip);
+
+/**
+ * @swagger
+ * /admin/reservations:
+ *   get:
+ *     summary: Liste de toutes les réservations
+ *     tags: [Admin]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Liste des réservations
+ */
+router.get('/reservations', authMiddleware, adminOnly, userController.getAllReservations);
+
+/**
+ * @swagger
+ * /admin/reservations/{id}:
+ *   delete:
+ *     summary: Supprimer une réservation par son ID
+ *     tags: [Admin]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         schema:
+ *           type: integer
+ *         required: true
+ *         description: ID de la réservation à supprimer
+ *     responses:
+ *       200:
+ *         description: Réservation supprimée
+ */
+router.delete('/reservations/:id', authMiddleware, adminOnly, userController.deleteReservation);
+
 module.exports = router;

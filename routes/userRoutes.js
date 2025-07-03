@@ -4,6 +4,7 @@ const router = express.Router();
 const userController = require('../controllers/userController');
 const authMiddleware = require('../middlewares/auth');
 const authorizeSelfOrAdmin = require('../middlewares/authorizeSelfOrAdmin');
+const adminOnly = require('../middlewares/adminOnly');
 
 /**
  * @swagger
@@ -81,5 +82,30 @@ router.put('/edit', authMiddleware, userController.editUser);
  *         description: Erreur serveur
  */
 router.delete('/delete', authMiddleware, userController.deleteUser);
+
+/**
+ * @swagger
+ * /user/{id}/promote:
+ *   patch:
+ *     summary: Promouvoir un utilisateur en administrateur
+ *     tags: [User]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         schema:
+ *           type: integer
+ *         required: true
+ *         description: ID de l'utilisateur à promouvoir
+ *     responses:
+ *       200:
+ *         description: Utilisateur promu admin
+ *       403:
+ *         description: Accès interdit
+ *       404:
+ *         description: Utilisateur non trouvé
+ */
+router.patch('/:id/promote', authMiddleware, adminOnly, userController.promoteToAdmin);
 
 module.exports = router;
