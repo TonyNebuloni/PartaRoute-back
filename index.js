@@ -7,7 +7,6 @@ const authMiddleware = require('./middlewares/auth');
 const app = express();
 const port = 3000;
 const cors = require("cors");
-const path = require("path");
 
 // Importation des routes
 const authRoutes = require("./routes/authRoutes");
