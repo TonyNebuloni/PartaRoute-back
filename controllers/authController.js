@@ -5,7 +5,7 @@ const prisma = require('../prisma/prisma');
 
 
 exports.register = async (req, res) => {
-  const { nom, email, mot_de_passe } = req.body;
+  const { nom, email, mot_de_passe, photo_profil } = req.body;
 
   // Vérification des champs requis
   if (!nom || !email || !mot_de_passe) {
@@ -33,7 +33,7 @@ exports.register = async (req, res) => {
         email,
         mot_de_passe: hashedPassword,
         role: "user", 
-        photo_profil: '',
+        photo_profil: photo_profil || '/uploads/profile_photos/default.jpg',
       },
     });
 
