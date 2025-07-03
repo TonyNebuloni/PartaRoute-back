@@ -4,6 +4,8 @@ const serverless = require("serverless-http");
 require("dotenv").config();
 const cors = require("cors");
 const path = require("path");
+const swaggerUi = require('swagger-ui-express');
+const swaggerDocument = require('../../public/swagger.json');
 
 // Routes
 const authRoutes = require("../routes/authRoutes");
@@ -27,6 +29,7 @@ app.use("/api/admin", adminRoutes);
 app.use("/api/reservations", reservationRoutes);
 app.use("/api/trips", tripRoutes);
 app.use("/api/notifications", notificationRoutes);
+app.use('/docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 
 app.get("/", (req, res) => {
     res.send(`
