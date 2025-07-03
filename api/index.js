@@ -4,6 +4,7 @@ const serverless = require("serverless-http");
 require("dotenv").config();
 const cors = require("cors");
 const path = require("path");
+const swaggerUi = require('swagger-ui-express');
 const swaggerDocument = require(path.join(process.cwd(), 'public', 'swagger.json'));
 
 // Routes
