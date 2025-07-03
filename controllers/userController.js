@@ -1,4 +1,5 @@
 const prisma = require('../prisma/prisma');
+const notificationService = require('../services/notificationService');
 
 const bcrypt = require("bcryptjs");
 
@@ -83,13 +84,51 @@ exports.deleteUser = async (req, res) => {
   const { id_utilisateur } = req.user;
 
   try {
-    await prisma.utilisateur.delete({
-      where: { id_utilisateur },
-    });
+    // 1. Supprimer les trajets où l'utilisateur est conducteur
+    const trajets = await prisma.trajet.findMany({ where: { conducteur_id: id_utilisateur } });
+    for (const trajet of trajets) {
+      // Trouver les réservations/passagers de ce trajet
+      const reservations = await prisma.reservation.findMany({ where: { trajet_id: trajet.id_trajet } });
+      for (const reservation of reservations) {
+        // Notifier chaque passager de l'annulation du trajet
+        await notificationService.createNotification({
+          utilisateur_id: reservation.passager_id,
+          reservation_id: reservation.id_reservation,
+          type: 'annulation',
+          contenu_message: "Le trajet auquel vous étiez inscrit a été annulé car le conducteur a supprimé son compte."
+        });
+      }
+      // Supprimer les réservations du trajet
+      await prisma.reservation.deleteMany({ where: { trajet_id: trajet.id_trajet } });
+      // Supprimer le trajet
+      await prisma.trajet.delete({ where: { id_trajet: trajet.id_trajet } });
+    }
+
+    // 2. Supprimer les réservations où l'utilisateur est passager
+    const reservationsAsPassenger = await prisma.reservation.findMany({ where: { passager_id: id_utilisateur }, include: { trajet: true } });
+    for (const reservation of reservationsAsPassenger) {
+      // Notifier le conducteur du trajet
+      if (reservation.trajet) {
+        await notificationService.createNotification({
+          utilisateur_id: reservation.trajet.conducteur_id,
+          reservation_id: reservation.id_reservation,
+          type: 'annulation',
+          contenu_message: "Un passager a annulé sa réservation car il a supprimé son compte."
+        });
+      }
+      // Supprimer la réservation
+      await prisma.reservation.delete({ where: { id_reservation: reservation.id_reservation } });
+    }
+
+    // 3. Supprimer les notifications liées à l'utilisateur
+    await prisma.notification.deleteMany({ where: { utilisateur_id: id_utilisateur } });
+
+    // 4. Supprimer l'utilisateur
+    await prisma.utilisateur.delete({ where: { id_utilisateur } });
 
     res.status(200).json({
       success: true,
-      message: "Utilisateur supprimé avec succès.",
+      message: "Utilisateur supprimé avec succès (ainsi que ses trajets et réservations).",
       links: {
         create: {
           href: `/api/auth/register`,
