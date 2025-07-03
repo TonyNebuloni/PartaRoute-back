@@ -1,0 +1,1331 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "PartaRoute API",
+    "version": "1.0.0",
+    "description": "Documentation générée automatiquement"
+  },
+  "servers": [
+    {
+      "url": "http://localhost:3000/api"
+    }
+  ],
+  "components": {
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT"
+      }
+    }
+  },
+  "security": [
+    {
+      "bearerAuth": []
+    }
+  ],
+  "paths": {
+    "/admin/users": {
+      "get": {
+        "summary": "Récupérer tous les utilisateurs",
+        "tags": [
+          "Admin"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Liste des utilisateurs récupérée avec succès"
+          },
+          "403": {
+            "description": "Accès refusé"
+          }
+        }
+      }
+    },
+    "/admin/users/{id}": {
+      "get": {
+        "summary": "Récupérer un utilisateur spécifique",
+        "tags": [
+          "Admin"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Utilisateur trouvé"
+          },
+          "403": {
+            "description": "Accès refusé"
+          },
+          "404": {
+            "description": "Utilisateur non trouvé"
+          }
+        }
+      },
+      "put": {
+        "summary": "Modifier un utilisateur",
+        "tags": [
+          "Admin"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "nom": {
+                    "type": "string"
+                  },
+                  "email": {
+                    "type": "string"
+                  },
+                  "mot_de_passe": {
+                    "type": "string"
+                  },
+                  "role": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Utilisateur mis à jour"
+          },
+          "403": {
+            "description": "Accès refusé"
+          },
+          "409": {
+            "description": "Email déjà utilisé"
+          },
+          "500": {
+            "description": "Erreur serveur"
+          }
+        }
+      },
+      "delete": {
+        "summary": "Supprimer un utilisateur",
+        "tags": [
+          "Admin"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Utilisateur supprimé"
+          },
+          "403": {
+            "description": "Accès refusé"
+          },
+          "500": {
+            "description": "Erreur serveur"
+          }
+        }
+      }
+    },
+    "/auth/register": {
+      "post": {
+        "summary": "Inscription d'un nouvel utilisateur",
+        "tags": [
+          "Auth"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "nom",
+                  "email",
+                  "mot_de_passe"
+                ],
+                "properties": {
+                  "nom": {
+                    "type": "string"
+                  },
+                  "email": {
+                    "type": "string"
+                  },
+                  "mot_de_passe": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Utilisateur créé"
+          },
+          "400": {
+            "description": "Utilisateur déjà existant ou données invalides"
+          }
+        }
+      }
+    },
+    "/auth/login": {
+      "post": {
+        "summary": "Connexion d'un utilisateur",
+        "tags": [
+          "Auth"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "email",
+                  "mot_de_passe"
+                ],
+                "properties": {
+                  "email": {
+                    "type": "string"
+                  },
+                  "mot_de_passe": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Connexion réussie, retourne un accessToken et refreshToken"
+          },
+          "400": {
+            "description": "Identifiants invalides"
+          }
+        }
+      }
+    },
+    "/auth/refresh": {
+      "post": {
+        "summary": "Rafraîchir le token d'accès",
+        "tags": [
+          "Auth"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "refreshToken"
+                ],
+                "properties": {
+                  "refreshToken": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Nouveau token généré"
+          },
+          "401": {
+            "description": "Token manquant"
+          },
+          "403": {
+            "description": "Token invalide ou expiré"
+          }
+        }
+      }
+    },
+    "/notifications/utilisateur/{utilisateurId}": {
+      "get": {
+        "summary": "Récupérer toutes les notifications d'un utilisateur",
+        "tags": [
+          "Notifications"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "utilisateurId",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            },
+            "description": "ID de l'utilisateur"
+          },
+          {
+            "in": "query",
+            "name": "page",
+            "schema": {
+              "type": "integer",
+              "default": 1
+            },
+            "description": "Numéro de page pour la pagination"
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "type": "integer",
+              "default": 10
+            },
+            "description": "Nombre d'éléments par page"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Liste paginée des notifications récupérée avec succès",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    },
+                    "page": {
+                      "type": "integer"
+                    },
+                    "limit": {
+                      "type": "integer"
+                    },
+                    "total": {
+                      "type": "integer"
+                    },
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "type": "object"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Non autorisé"
+          }
+        },
+        "examples": {
+          "application/json": {
+            "value": {
+              "success": true,
+              "page": 1,
+              "limit": 10,
+              "total": 15,
+              "data": [
+                {
+                  "id_notification": 1,
+                  "...": null
+                },
+                "..."
+              ]
+            }
+          }
+        }
+      }
+    },
+    "/notifications": {
+      "post": {
+        "summary": "Créer une notification",
+        "tags": [
+          "Notifications"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "utilisateur_id",
+                  "type",
+                  "contenu_message"
+                ],
+                "properties": {
+                  "utilisateur_id": {
+                    "type": "integer"
+                  },
+                  "reservation_id": {
+                    "type": "integer",
+                    "nullable": true
+                  },
+                  "type": {
+                    "type": "string",
+                    "enum": [
+                      "demande_reservation",
+                      "confirmation",
+                      "refus",
+                      "annulation",
+                      "generique"
+                    ]
+                  },
+                  "contenu_message": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Notification créée avec succès"
+          },
+          "400": {
+            "description": "Données manquantes ou invalides"
+          },
+          "401": {
+            "description": "Non autorisé"
+          }
+        }
+      }
+    },
+    "/notifications/{notificationId}/lue": {
+      "patch": {
+        "summary": "Marquer une notification comme lue",
+        "tags": [
+          "Notifications"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "notificationId",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            },
+            "description": "ID de la notification"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Notification marquée comme lue"
+          },
+          "401": {
+            "description": "Non autorisé"
+          },
+          "404": {
+            "description": "Notification non trouvée"
+          }
+        }
+      }
+    },
+    "/notifications/{notificationId}": {
+      "delete": {
+        "summary": "Supprimer une notification",
+        "tags": [
+          "Notifications"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "notificationId",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            },
+            "description": "ID de la notification"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Notification supprimée"
+          },
+          "401": {
+            "description": "Non autorisé"
+          },
+          "404": {
+            "description": "Notification non trouvée"
+          }
+        }
+      }
+    },
+    "/reservations": {
+      "post": {
+        "summary": "Créer une réservation",
+        "tags": [
+          "Reservations"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "trajet_id"
+                ],
+                "properties": {
+                  "trajet_id": {
+                    "type": "integer"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Réservation créée avec succès"
+          },
+          "400": {
+            "description": "Données manquantes ou invalides"
+          },
+          "401": {
+            "description": "Non autorisé"
+          }
+        }
+      },
+      "get": {
+        "summary": "Récupérer les réservations de l'utilisateur",
+        "tags": [
+          "Reservations"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "page",
+            "schema": {
+              "type": "integer",
+              "default": 1
+            },
+            "description": "Numéro de page pour la pagination"
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "type": "integer",
+              "default": 10
+            },
+            "description": "Nombre d'éléments par page"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Liste paginée des réservations récupérée avec succès",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    },
+                    "page": {
+                      "type": "integer"
+                    },
+                    "limit": {
+                      "type": "integer"
+                    },
+                    "total": {
+                      "type": "integer"
+                    },
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "type": "object"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Non autorisé"
+          }
+        },
+        "examples": {
+          "application/json": {
+            "value": {
+              "success": true,
+              "page": 1,
+              "limit": 10,
+              "total": 20,
+              "data": [
+                {
+                  "id_reservation": 1,
+                  "...": null
+                },
+                "..."
+              ]
+            }
+          }
+        }
+      }
+    },
+    "/reservations/{id}/statut": {
+      "post": {
+        "summary": "Changer le statut d'une réservation (accepter/refuser)",
+        "tags": [
+          "Reservations"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            },
+            "description": "ID de la réservation"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "statut"
+                ],
+                "properties": {
+                  "statut": {
+                    "type": "string",
+                    "enum": [
+                      "acceptee",
+                      "refusee"
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Statut de la réservation mis à jour"
+          },
+          "401": {
+            "description": "Non autorisé"
+          },
+          "404": {
+            "description": "Réservation non trouvée"
+          }
+        }
+      }
+    },
+    "/reservations/{id}/annuler": {
+      "patch": {
+        "summary": "Annuler une réservation",
+        "tags": [
+          "Reservations"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            },
+            "description": "ID de la réservation à annuler"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Réservation annulée avec succès"
+          },
+          "401": {
+            "description": "Non autorisé"
+          },
+          "404": {
+            "description": "Réservation non trouvée"
+          }
+        }
+      }
+    },
+    "/conducteur/reservations": {
+      "get": {
+        "summary": "Récupérer toutes les réservations pour les trajets dont l'utilisateur connecté est le conducteur",
+        "tags": [
+          "Reservations"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "page",
+            "schema": {
+              "type": "integer",
+              "default": 1
+            },
+            "description": "Numéro de page pour la pagination"
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "type": "integer",
+              "default": 10
+            },
+            "description": "Nombre d'éléments par page"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Liste paginée des réservations pour les trajets du conducteur",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    },
+                    "page": {
+                      "type": "integer"
+                    },
+                    "limit": {
+                      "type": "integer"
+                    },
+                    "total": {
+                      "type": "integer"
+                    },
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "type": "object"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Non autorisé"
+          }
+        },
+        "examples": {
+          "application/json": {
+            "value": {
+              "success": true,
+              "page": 1,
+              "limit": 10,
+              "total": 8,
+              "data": [
+                {
+                  "id_reservation": 1,
+                  "...": null
+                },
+                "..."
+              ]
+            }
+          }
+        }
+      }
+    },
+    "/trips": {
+      "post": {
+        "summary": "Créer un nouveau trajet",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "tags": [
+          "Trajets"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "ville_depart",
+                  "ville_arrivee",
+                  "date_heure_depart",
+                  "places_disponibles",
+                  "prix"
+                ],
+                "properties": {
+                  "ville_depart": {
+                    "type": "string"
+                  },
+                  "ville_arrivee": {
+                    "type": "string"
+                  },
+                  "date_heure_depart": {
+                    "type": "string",
+                    "format": "date-time"
+                  },
+                  "places_disponibles": {
+                    "type": "integer"
+                  },
+                  "prix": {
+                    "type": "number"
+                  },
+                  "conditions": {
+                    "type": "object"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Trajet créé avec succès"
+          },
+          "400": {
+            "description": "Données invalides"
+          },
+          "401": {
+            "description": "Token manquant ou invalide"
+          }
+        }
+      },
+      "get": {
+        "summary": "Récupérer la liste des trajets",
+        "tags": [
+          "Trajets"
+        ],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "ville_depart",
+            "schema": {
+              "type": "string"
+            },
+            "description": "Ville de départ"
+          },
+          {
+            "in": "query",
+            "name": "ville_arrivee",
+            "schema": {
+              "type": "string"
+            },
+            "description": "Ville d'arrivée"
+          },
+          {
+            "in": "query",
+            "name": "date",
+            "schema": {
+              "type": "string",
+              "format": "date"
+            },
+            "description": "Date de départ (YYYY-MM-DD)"
+          },
+          {
+            "in": "query",
+            "name": "page",
+            "schema": {
+              "type": "integer",
+              "default": 1
+            },
+            "description": "Numéro de page pour la pagination"
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "type": "integer",
+              "default": 10
+            },
+            "description": "Nombre d'éléments par page"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Liste paginée des trajets",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    },
+                    "page": {
+                      "type": "integer"
+                    },
+                    "limit": {
+                      "type": "integer"
+                    },
+                    "total": {
+                      "type": "integer"
+                    },
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "type": "object"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Non autorisé"
+          }
+        },
+        "examples": {
+          "application/json": {
+            "value": {
+              "success": true,
+              "page": 1,
+              "limit": 10,
+              "total": 42,
+              "data": [
+                {
+                  "id_trajet": 1,
+                  "...": null
+                },
+                "..."
+              ]
+            }
+          }
+        }
+      }
+    },
+    "/trips/{id}": {
+      "patch": {
+        "summary": "Mettre à jour un trajet existant",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "tags": [
+          "Trajets"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            },
+            "description": "ID du trajet"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "ville_depart": {
+                    "type": "string"
+                  },
+                  "ville_arrivee": {
+                    "type": "string"
+                  },
+                  "date_heure_depart": {
+                    "type": "string",
+                    "format": "date-time"
+                  },
+                  "places_disponibles": {
+                    "type": "integer"
+                  },
+                  "prix": {
+                    "type": "number"
+                  },
+                  "conditions": {
+                    "type": "object"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Trajet mis à jour"
+          },
+          "400": {
+            "description": "Erreur de validation"
+          },
+          "401": {
+            "description": "Non autorisé"
+          },
+          "404": {
+            "description": "Trajet non trouvé"
+          }
+        }
+      },
+      "delete": {
+        "summary": "Supprimer un trajet",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "tags": [
+          "Trajets"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            },
+            "description": "ID du trajet"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Trajet supprimé"
+          },
+          "401": {
+            "description": "Non autorisé"
+          },
+          "404": {
+            "description": "Trajet non trouvé"
+          }
+        }
+      },
+      "get": {
+        "summary": "Récupérer un trajet précis par son ID",
+        "tags": [
+          "Trajets"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            },
+            "description": "ID du trajet"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Trajet trouvé",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    },
+                    "data": {
+                      "type": "object"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Trajet non trouvé"
+          }
+        }
+      }
+    },
+    "/trips/conducteur/trajets": {
+      "get": {
+        "summary": "Récupérer tous les trajets proposés par le conducteur connecté",
+        "tags": [
+          "Trips"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "page",
+            "schema": {
+              "type": "integer",
+              "default": 1
+            },
+            "description": "Numéro de page pour la pagination"
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "type": "integer",
+              "default": 10
+            },
+            "description": "Nombre d'éléments par page"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Liste paginée des trajets du conducteur",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    },
+                    "page": {
+                      "type": "integer"
+                    },
+                    "limit": {
+                      "type": "integer"
+                    },
+                    "total": {
+                      "type": "integer"
+                    },
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "type": "object"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Non autorisé"
+          }
+        },
+        "examples": {
+          "application/json": {
+            "value": {
+              "success": true,
+              "page": 1,
+              "limit": 10,
+              "total": 5,
+              "data": [
+                {
+                  "id_trajet": 1,
+                  "...": null
+                },
+                "..."
+              ]
+            }
+          }
+        }
+      }
+    },
+    "/user/{id}": {
+      "get": {
+        "summary": "Récupérer les informations d'un utilisateur",
+        "tags": [
+          "User"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "schema": {
+              "type": "integer"
+            },
+            "required": true,
+            "description": "ID de l'utilisateur"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Informations utilisateur récupérées"
+          },
+          "403": {
+            "description": "Accès interdit"
+          },
+          "404": {
+            "description": "Utilisateur non trouvé"
+          }
+        }
+      }
+    },
+    "/user/edit": {
+      "put": {
+        "summary": "Modifier les informations de l'utilisateur connecté",
+        "tags": [
+          "User"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "nom": {
+                    "type": "string"
+                  },
+                  "email": {
+                    "type": "string"
+                  },
+                  "mot_de_passe": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Utilisateur mis à jour"
+          },
+          "500": {
+            "description": "Erreur serveur"
+          }
+        }
+      }
+    },
+    "/user/delete": {
+      "delete": {
+        "summary": "Supprimer son compte utilisateur",
+        "tags": [
+          "User"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Utilisateur supprimé"
+          },
+          "500": {
+            "description": "Erreur serveur"
+          }
+        }
+      }
+    }
+  },
+  "tags": [
+    {
+      "name": "Admin",
+      "description": "Routes réservées aux administrateurs"
+    },
+    {
+      "name": "Auth",
+      "description": "Authentification utilisateur"
+    },
+    {
+      "name": "Notifications",
+      "description": "Gestion des notifications"
+    },
+    {
+      "name": "Reservations",
+      "description": "Gestion des réservations"
+    },
+    {
+      "name": "User",
+      "description": "Gestion des utilisateurs"
+    }
+  ]
+}
