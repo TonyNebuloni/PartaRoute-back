@@ -3,6 +3,8 @@ const notificationService = require('../services/notificationService');
 
 const bcrypt = require("bcryptjs");
 
+const DEFAULT_PHOTO = '/uploads/profile_photos/default.png';
+
 // ────────────────────────────────
 // UTILISATEUR CONNECTÉ
 // ────────────────────────────────
@@ -26,10 +28,13 @@ exports.getUserById = async (req, res) => {
       return res.status(404).json({ success: false, message: "Utilisateur non trouvé." });
     }
 
+    const photoUrl = user.photo_profil || DEFAULT_PHOTO;
+
     res.status(200).json({
       success: true,
       data: {
         ...user,
+        photo_profil: photoUrl,
         links: generateUserLinks(user)
       }
     });
@@ -64,13 +69,16 @@ exports.editUser = async (req, res) => {
     const updatedUser = await prisma.utilisateur.update({
       where: { id_utilisateur },
       data: updateData,
-      select: { id_utilisateur: true, nom: true, email: true, role: true },
+      select: { id_utilisateur: true, nom: true, email: true, role: true, photo_profil: true },
     });
+
+    const photoUrl = updatedUser.photo_profil || DEFAULT_PHOTO;
 
     res.status(200).json({
       success: true,
       data: {
         ...updatedUser,
+        photo_profil: photoUrl,
         links: generateUserLinks(updatedUser)
       }
     });
