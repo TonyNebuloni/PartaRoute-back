@@ -1,6 +1,9 @@
+const path = require("path");
+const express = require("express");
 const swaggerJSDoc = require("swagger-jsdoc");
 const swaggerUi = require("swagger-ui-express");
 
+// Configuration Swagger
 const options = {
   definition: {
     openapi: "3.0.0",
@@ -28,41 +31,25 @@ const options = {
         bearerAuth: [],
       },
     ],
-    /**
-     * @swagger
-     * /trips/{id}:
-     *   get:
-     *     summary: Récupérer un trajet précis par son ID
-     *     tags: [Trajets]
-     *     parameters:
-     *       - in: path
-     *         name: id
-     *         required: true
-     *         schema:
-     *           type: integer
-     *         description: ID du trajet
-     *     responses:
-     *       200:
-     *         description: Trajet trouvé
-     *         content:
-     *           application/json:
-     *             schema:
-     *               type: object
-     *               properties:
-     *                 success:
-     *                   type: boolean
-     *                 data:
-     *                   type: object
-     *       404:
-     *         description: Trajet non trouvé
-     */
   },
-  apis: ["./routes/*.js"], // Assure-toi que les routes sont bien à la racine de "routes"
+  apis: ["./routes/*.js"], // Assure-toi que le chemin est correct selon ton projet
 };
 
+// Génération du swaggerSpec
 const swaggerSpec = swaggerJSDoc(options);
 
+// Chemin vers les fichiers statiques de Swagger UI
+const swaggerUiDistPath = path.join(
+    __dirname,
+    "../node_modules/swagger-ui-dist"
+);
+
+// Fonction d’intégration dans Express
 const setupSwagger = (app) => {
+  // Sert les fichiers JS/CSS nécessaires à Swagger UI (obligatoire sur Vercel)
+  app.use("/api-docs", express.static(swaggerUiDistPath, { index: false }));
+
+  // Initialise Swagger UI
   app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 };
 
