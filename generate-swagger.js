@@ -12,7 +12,7 @@ const options = {
         },
         servers: [
             {
-                url: "http://localhost:3000/api"
+                url: "https:/parta-route-back.vercel.app/api"
             }
         ],
         components: {

@@ -7,7 +7,7 @@
   },
   "servers": [
     {
-      "url": "https://parta-route-back.vercel.app/api"
+      "url": "https:/parta-route-back.vercel.app/api"
     }
   ],
   "components": {

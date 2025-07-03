@@ -14,7 +14,7 @@ const options = {
     },
     servers: [
       {
-        url: process.env.API_BASE_URL || "https://parta-route-back.vercel.app/api",
+        url: process.env.API_BASE_URL || "https:/parta-route-back.vercel.app/api",
       },
     ],
     components: {
