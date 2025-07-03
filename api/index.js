@@ -26,8 +26,12 @@ app.get("/", (req, res) => {
     res.send("Bienvenue sur l'API !");
 });
 
-const setupSwagger = require("../docs/swagger.js");
-setupSwagger(app);
+app.get("/", (req, res) => {
+    res.send(`
+    <h1>Bienvenue sur l'API PartaRoute</h1>
+    <p><a href="/docs">Voir la documentation Swagger</a></p>
+  `);
+});
 
 app.use((req, res, next) => {
     res.status(404).json({ success: false, message: "Route introuvable." });
