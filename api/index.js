@@ -15,6 +15,7 @@ const adminRoutes = require("../routes/adminRoutes");
 
 const allowedOrigins = [
   "https://parta-route-front.vercel.app",
+  "https://parta-route-back.vercel.app",
   "http://localhost:3000",
   "http://localhost:5173"
 ];
