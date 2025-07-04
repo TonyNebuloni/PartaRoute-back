@@ -4,8 +4,6 @@ const serverless = require("serverless-http");
 require("dotenv").config();
 const cors = require("cors");
 const path = require("path");
-const swaggerUi = require('swagger-ui-express');
-const swaggerDocument = require(path.join(process.cwd(), 'public', 'swagger.json'));
 
 // Routes
 const authRoutes = require("../routes/authRoutes");
@@ -21,9 +19,23 @@ const allowedOrigins = [
   "http://localhost:5173"
 ];
 
+app.use(express.static(path.join(__dirname, '../public')));
+app.use(express.json());
+
+app.use('/swagger-ui', express.static(path.join(__dirname, '../public/swagger-ui')));
+
+// Sert les fichiers statiques comme /docs et /swagger.json
+app.get("/swagger.json", (req, res) => {
+    res.sendFile(path.join(__dirname, '../public/swagger.json'));
+});
+
 app.use(cors({
   origin: function (origin, callback) {
-    if (!origin || allowedOrigins.indexOf(origin) !== -1) {
+    if (
+      !origin ||
+      allowedOrigins.indexOf(origin) !== -1 ||
+      /^https:\/\/partaroute-back-tlge-[^.]+-barraults-projects\.vercel\.app$/.test(origin)
+    ) {
       callback(null, true);
     } else {
       callback(new Error('Not allowed by CORS'));
@@ -32,12 +44,6 @@ app.use(cors({
   credentials: true,
   allowedHeaders: ['Content-Type', 'Authorization']
 }));
-app.use(express.json());
-
-// Sert les fichiers statiques comme /docs et /swagger.json
-app.get("/swagger.json", (req, res) => {
-    res.sendFile(path.resolve(__dirname, "../../public/swagger.json"));
-});
 
 app.use("/api/auth", authRoutes);
 app.use("/api/user", userRoutes);
@@ -45,17 +51,12 @@ app.use("/api/admin", adminRoutes);
 app.use("/api/reservations", reservationRoutes);
 app.use("/api/trips", tripRoutes);
 app.use("/api/notifications", notificationRoutes);
-app.use('/docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 
 app.get("/", (req, res) => {
     res.send(`
     <h1>Bienvenue sur l'API PartaRoute</h1>
-    <p><a href="/docs">Voir la documentation Swagger</a></p>
-  `);
-});
-
-app.use((req, res, next) => {
-    res.status(404).json({ success: false, message: "Route introuvable." });
+    <p><a href="/docs/index.html">Voir la documentation Swagger</a></p>
+    `);
 });
 
 app.use((err, req, res, next) => {
