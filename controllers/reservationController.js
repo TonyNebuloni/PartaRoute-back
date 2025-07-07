@@ -82,6 +82,10 @@ exports.createReservation = async (req, res) => {
       reservation_id: reservation.id_reservation,
       type: "demande_reservation",
       contenu_message: `Nouvelle demande de réservation pour votre trajet de ${trajet.ville_depart} à ${trajet.ville_arrivee}.`,
+      passagerData: {
+        nom: utilisateur.nom,
+        id_utilisateur: utilisateur.id_utilisateur
+      }
     });
 
     return res.status(201).json({
