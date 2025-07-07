@@ -59,6 +59,7 @@ app.get("/", (req, res) => {
     <p><a href="/docs/index.html">Voir la documentation Swagger</a></p>
     `);
 });
+// on fait genre qu'un truc a changé pour bait vercel 
 
 app.use((err, req, res, next) => {
     console.error("Erreur serveur :", err);
