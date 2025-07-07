@@ -23,7 +23,7 @@ const allowedOrigins = [
 app.use(express.static(path.join(__dirname, '../public')));
 
 // Sert les fichiers uploads (photos de profil)
-app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
+app.use('/tmp', express.static('/tmp'));
 
 app.use(express.json());
 
