@@ -1,10 +1,13 @@
 const express = require('express');
 const router = express.Router();
+const multer = require('multer');
+const path = require('path');
 
 const userController = require('../controllers/userController');
 const authMiddleware = require('../middlewares/auth');
 const authorizeSelfOrAdmin = require('../middlewares/authorizeSelfOrAdmin');
 const adminOnly = require('../middlewares/adminOnly');
+const prisma = require('../prisma/prisma');
 
 /**
  * @swagger
@@ -107,5 +110,36 @@ router.delete('/delete', authMiddleware, userController.deleteUser);
  *         description: Utilisateur non trouvé
  */
 router.patch('/:id/promote', authMiddleware, adminOnly, userController.promoteToAdmin);
+
+// Configuration de multer pour l'upload de photo de profil
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, 'uploads/profile_photos/');
+  },
+  filename: function (req, file, cb) {
+    const ext = path.extname(file.originalname);
+    const uniqueName = `user_${req.user.id_utilisateur}_${Date.now()}${ext}`;
+    cb(null, uniqueName);
+  }
+});
+const upload = multer({ storage });
+
+// Route d'upload de photo de profil utilisateur
+router.post('/upload-photo', authMiddleware, upload.single('photo'), async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ success: false, message: 'Aucun fichier envoyé.' });
+    }
+    const fileUrl = `/uploads/profile_photos/${req.file.filename}`;
+    await prisma.utilisateur.update({
+      where: { id_utilisateur: req.user.id_utilisateur },
+      data: { photo_profil: fileUrl }
+    });
+    res.json({ success: true, photo_profil: fileUrl });
+  } catch (err) {
+    console.error('Erreur upload photo:', err);
+    res.status(500).json({ success: false, message: "Erreur lors de l'upload." });
+  }
+});
 
 module.exports = router;
