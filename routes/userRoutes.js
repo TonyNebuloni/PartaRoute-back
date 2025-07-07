@@ -115,7 +115,7 @@ router.patch('/:id/promote', authMiddleware, adminOnly, userController.promoteTo
 // Configuration de multer pour l'upload de photo de profil
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
-    const uploadDir = 'uploads/profile_photos/';
+    const uploadDir = '/tmp/profile_photos/';
     // Créer le dossier s'il n'existe pas
     if (!fs.existsSync(uploadDir)) {
       fs.mkdirSync(uploadDir, { recursive: true });
@@ -136,7 +136,7 @@ router.post('/upload-photo', authMiddleware, upload.single('photo'), async (req,
     if (!req.file) {
       return res.status(400).json({ success: false, message: 'Aucun fichier envoyé.' });
     }
-    const fileUrl = `/uploads/profile_photos/${req.file.filename}`;
+    const fileUrl = `/tmp/profile_photos/${req.file.filename}`;
     await prisma.utilisateur.update({
       where: { id_utilisateur: req.user.id_utilisateur },
       data: { photo_profil: fileUrl }
