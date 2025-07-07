@@ -21,6 +21,10 @@ const allowedOrigins = [
 ];
 
 app.use(express.static(path.join(__dirname, '../public')));
+
+// Sert les fichiers uploads (photos de profil)
+app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
+
 app.use(express.json());
 
 app.use('/swagger-ui', express.static(path.join(__dirname, '../public/swagger-ui')));
