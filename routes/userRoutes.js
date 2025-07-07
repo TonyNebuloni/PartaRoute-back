@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const multer = require('multer');
 const path = require('path');
+const fs = require('fs');
 
 const userController = require('../controllers/userController');
 const authMiddleware = require('../middlewares/auth');
@@ -114,7 +115,12 @@ router.patch('/:id/promote', authMiddleware, adminOnly, userController.promoteTo
 // Configuration de multer pour l'upload de photo de profil
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
-    cb(null, 'uploads/profile_photos/');
+    const uploadDir = 'uploads/profile_photos/';
+    // Créer le dossier s'il n'existe pas
+    if (!fs.existsSync(uploadDir)) {
+      fs.mkdirSync(uploadDir, { recursive: true });
+    }
+    cb(null, uploadDir);
   },
   filename: function (req, file, cb) {
     const ext = path.extname(file.originalname);
